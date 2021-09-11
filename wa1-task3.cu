@@ -25,13 +25,13 @@ int main(int argc, char** argv){
     float* h_in  = (float*) malloc(mem_size);
     float* h_out = (float*) malloc(mem_size);
 	//allocate host memory for CPU function
-	float* array_input  = (float*) malloc(mem_size);
-    float* array_output = (float*) malloc(mem_size);
+	//float* array_input  = (float*) malloc(mem_size);
+    //float* array_output = (float*) malloc(mem_size);
 
     // initialize the memory
     for(unsigned int i=1; i<=N; ++i) {
         h_in[i] = (float)i;
-		array_input[i] = (float)i;
+		//array_input[i] = (float)i;
     }
     //allocate device memory
 	float* d_in;
@@ -48,7 +48,7 @@ int main(int argc, char** argv){
     // print result
     for(unsigned int i=0; i<N; ++i) printf("%.6f\n", h_out[i]);
 
-    free(array_input); free(array_output);
+    //free(array_input); //free(array_output);
     free(h_in);        free(h_out);
     cudaFree(d_in);    cudaFree(d_out);
 
