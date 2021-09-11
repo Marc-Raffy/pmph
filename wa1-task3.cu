@@ -8,6 +8,7 @@ __global__ void squareKernel(float* d_in, float *d_out) {
     const unsigned int lid = threadIdx.x;
     const unsigned int gid = blockIdx.x*blockDim.x + lid;
     d_out[gid] = pow(d_in[gid]/(d_in[gid]-2.3),3);
+    }
 
 void cpu_function(float* array_input, float* array_output, int array_size){
 	for (int i = 0; i < array_size; i++)
