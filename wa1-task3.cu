@@ -46,7 +46,7 @@ int main(int argc, char** argv){
     cudaMemcpy(h_out, d_out, mem_size, cudaMemcpyDeviceToHost);
 
     // print result
-    for(unsigned int i=0; i<N; ++i) printf("%f %d\n", h_out[i], i);
+    for(unsigned int i=0; i<N; ++i) printf("%f %d\n", h_out[256], i);
 
     //free(array_input); //free(array_output);
     free(h_in);        free(h_out);
