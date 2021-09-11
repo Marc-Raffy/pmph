@@ -18,7 +18,7 @@ void cpu_function(float* array_input, float* array_output, int array_size){
 }
 
 int main(int argc, char** argv){
-	unsigned int N = 753411;
+	unsigned int N = 512;
     unsigned int mem_size = N*sizeof(float);
 
     // allocate host memory for GPU function
