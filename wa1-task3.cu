@@ -41,7 +41,7 @@ int main(int argc, char** argv){
 
     cudaMemcpy(d_in, h_in, mem_size, cudaMemcpyHostToDevice);
 
-    squareKernel<<< 1, 128>>>(d_in, d_out);
+    squareKernel<<< 1, 64>>>(d_in, d_out);
 
     cudaMemcpy(h_out, d_out, mem_size, cudaMemcpyDeviceToHost);
 
