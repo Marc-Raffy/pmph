@@ -4,6 +4,12 @@
 #include <math.h>
 #include <cuda_runtime.h>
 
+__global__ void squareKernel(float* d_in, float *d_out) {
+    const unsigned int lid = threadIdx.x;
+    const unsigned int gid = blockIdx.x*blockDim.x + lid;
+    d_out[gid] = d_in[gid]*d_in[gid];
+}
+
 int function_to_map(int x){
 	return pow((x/x-2.3), 3);
 }
