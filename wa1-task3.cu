@@ -4,18 +4,18 @@
 #include <math.h>
 #include <cuda_runtime.h>
 
-__global__ int function_to_map(int x){
+int function_to_map(int x){
 	return pow((x/x-2.3), 3);
 }
 
-__global__ void cpu_function(float* array_input, float* array_output, int array_size){
+void cpu_function(float* array_input, float* array_output, int array_size){
 	for (int i = 0; i < array_size; i++)
 	{
 		array_output[i] = function_to_map(array_input[i]);
 	}
 }
 
-__global__ void gpu_function(float* d_in, float* d_out, int block_size){
+void gpu_function(float* d_in, float* d_out, int block_size){
 	squareKernel<<< 1, block_size>>>(d_in, d_out);
 }
 
