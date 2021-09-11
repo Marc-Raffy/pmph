@@ -7,11 +7,7 @@
 __global__ void squareKernel(float* d_in, float *d_out) {
     const unsigned int lid = threadIdx.x;
     const unsigned int gid = blockIdx.x*blockDim.x + lid;
-    d_out[gid] = pow((d_in[gid]/d_in[gid]-2.3), 3);
-}
-
-int function_to_map(int x){
-	return pow((x/x-2.3), 3);
+    d_out[gid] = 5;
 }
 
 void cpu_function(float* array_input, float* array_output, int array_size){
@@ -21,11 +17,7 @@ void cpu_function(float* array_input, float* array_output, int array_size){
 	}
 }
 
-void gpu_function(float* d_in, float* d_out, int block_size){
-	
-}
-
-int main(){
+int main(int argc, char** argv){
 	unsigned int N = 753411;
     unsigned int mem_size = N*sizeof(float);
 
