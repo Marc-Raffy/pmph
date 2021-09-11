@@ -4,11 +4,14 @@
 #include <math.h>
 #include <cuda_runtime.h>
 
-__global__ void squareKernel(float* d_in, float *d_out) {
+__global__ void squareKernel(float* d_in, float *d_out, int N) {
     const unsigned int lid = threadIdx.x;
     const unsigned int gid = blockIdx.x*blockDim.x + lid;
-    d_out[gid] = pow(d_in[gid]/(d_in[gid]-2.3),3);
+    if(gid < N)
+    {
+        d_out[gid] = pow(d_in[gid]/(d_in[gid]-2.3),3);
     }
+}
 
 void cpu_function(float* array_input, float* array_output, int array_size){
 	for (int i = 0; i < array_size; i++)
@@ -20,7 +23,9 @@ void cpu_function(float* array_input, float* array_output, int array_size){
 int main(int argc, char** argv){
 	unsigned int N = 753412;
     unsigned int mem_size = N*sizeof(float);
-
+    unsigned int block_size = 256;
+    unsigned int num_blocks = ((N + (block_size - 1) / block_size));
+    
     // allocate host memory for GPU function
     float* h_in  = (float*) malloc(mem_size);
     float* h_out = (float*) malloc(mem_size);
@@ -41,7 +46,7 @@ int main(int argc, char** argv){
 
     cudaMemcpy(d_in, h_in, mem_size, cudaMemcpyHostToDevice);
 
-    squareKernel<<< 1, N>>>(d_in, d_out);
+    squareKernel<<< num_blocks, block_size>>>(d_in, d_out, N);
 
     cudaMemcpy(h_out, d_out, mem_size, cudaMemcpyDeviceToHost);
 
