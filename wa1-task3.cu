@@ -7,7 +7,7 @@
 __global__ void squareKernel(float* d_in, float *d_out) {
     const unsigned int lid = threadIdx.x;
     const unsigned int gid = blockIdx.x*blockDim.x + lid;
-    d_out[gid] = 5;
+    d_out[gid] = d_in[gid]*d_in[gid];
 }
 
 void cpu_function(float* array_input, float* array_output, int array_size){
@@ -18,7 +18,7 @@ void cpu_function(float* array_input, float* array_output, int array_size){
 }
 
 int main(int argc, char** argv){
-	unsigned int N = 753411;
+	unsigned int N = 32;
     unsigned int mem_size = N*sizeof(float);
 
     // allocate host memory for GPU function
