@@ -7,7 +7,7 @@
 __global__ void squareKernel(float* d_in, float *d_out) {
     const unsigned int lid = threadIdx.x;
     const unsigned int gid = blockIdx.x*blockDim.x + lid;
-    d_out[gid] = d_in[gid]*d_in[gid];
+    d_out[gid] = pow((d_in[gid]/d_in[gid]-2.3), 3);
 }
 
 int function_to_map(int x){
@@ -17,12 +17,12 @@ int function_to_map(int x){
 void cpu_function(float* array_input, float* array_output, int array_size){
 	for (int i = 0; i < array_size; i++)
 	{
-		array_output[i] = function_to_map(array_input[i]);
+		array_output[i] = pow((array_input[i]/array_input[i]-2.3), 3);
 	}
 }
 
 void gpu_function(float* d_in, float* d_out, int block_size){
-	squareKernel<<< 1, block_size>>>(d_in, d_out);
+	
 }
 
 int main(){
@@ -49,7 +49,7 @@ int main(){
 
     cudaMemcpy(d_in, h_in, mem_size, cudaMemcpyHostToDevice);
 
-    gpu_function(d_in, d_out, 128);
+    squareKernel<<< 1, 128>>>(d_in, d_out);
 
     cudaMemcpy(h_out, d_out, mem_size, cudaMemcpyDeviceToHost);
 
