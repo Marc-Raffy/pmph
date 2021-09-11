@@ -18,7 +18,7 @@ void cpu_function(float* array_input, float* array_output, int array_size){
 }
 
 int main(int argc, char** argv){
-	unsigned int N = 512;
+	unsigned int N = 753412;
     unsigned int mem_size = N*sizeof(float);
 
     // allocate host memory for GPU function
@@ -29,7 +29,7 @@ int main(int argc, char** argv){
     //float* array_output = (float*) malloc(mem_size);
 
     // initialize the memory
-    for(unsigned int i=1; i<=N; ++i) {
+    for(unsigned int i=1; i<N; ++i) {
         h_in[i] = (float)i;
 		//array_input[i] = (float)i;
     }
@@ -41,7 +41,7 @@ int main(int argc, char** argv){
 
     cudaMemcpy(d_in, h_in, mem_size, cudaMemcpyHostToDevice);
 
-    squareKernel<<< 1, 64>>>(d_in, d_out);
+    squareKernel<<< 1, N>>>(d_in, d_out);
 
     cudaMemcpy(h_out, d_out, mem_size, cudaMemcpyDeviceToHost);
 
