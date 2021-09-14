@@ -20,8 +20,8 @@ let redOp (pred2 : int -> int -> bool)
 
   let connect= if tlx == 0 || tly == 0 then true else pred2 lastx firsty
   let newlss = if connect then lssx + lssy else max(lssx, lssy)
-  let newlis = max(lisx, if tlx < lssx then 0 else tlx+lisy)
-  let newlcs = max(lcsy, if tly < lssy then 0 else tly+lcsx)
+  let newlis = max(lisx, if tlx > lssx then 0 else tlx+lisy)
+  let newlcs = max(lcsy, if tly > lssy then 0 else tly+lcsx)
   let newtl  = tlx + tly
   let first  = if tlx == 0 then firsty else firstx
   let last   = if tly == 0 then lastx else lasty in
@@ -34,7 +34,7 @@ let mapOp (pred1 : int -> bool) (x: int) : (int,int,int,int,int,int) =
 let lssp (pred1 : int -> bool) 
          (pred2 : int -> int -> bool) 
          (xs    : []int ) : int =
-  let (_,_,x,_,_,_) =
+  let (x,_,_,_,_,_) =
         reduce (redOp pred2) (0,0,0,0,0,0) <| 
         map (mapOp pred1) xs
   in  x
