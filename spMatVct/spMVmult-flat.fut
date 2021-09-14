@@ -97,7 +97,7 @@ let mkFlagArray 't [m] (aoa_shp: [m]i32) (zero: t) (aoa_val : [m]t) : []i64 =
   let shp_rot = map (\i->if i==0 then 0 else aoa_shp[i-1]) (iota m)
   let shp_scn = scan (+) 0 shp_rot 
   let aoa_len = shp_scn[m-1]+ aoa_shp[m-1] 
-  let shp_ind = map2 (\shp ind -> if shp ==0 then i64.i32 -1 else ind) aoa_shp shp_scn 
+  let shp_ind = map2 (\shp ind -> if shp ==0 then i64.i32 (-1) else ind) aoa_shp shp_scn 
   in scatter (replicate (i64.i32 aoa_len) zero) shp_ind aoa_val
 
 
