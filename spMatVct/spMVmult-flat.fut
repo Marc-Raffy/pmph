@@ -102,7 +102,7 @@ let mkFlagArray 't [m] (aoa_shp: [m]i32)  (aoa_shp_bis: [m]i64) (zero: i64) (aoa
   let aoa_len_bis = shp_scn_bis[m-1]+ aoa_shp_bis[m-1] 
   let shp_ind = map2 (\shp ind -> if shp ==0 then -1 else ind) aoa_shp shp_scn 
   let shp_ind_bis = map2 (\shp ind -> if shp ==0 then -1 else ind) aoa_shp_bis shp_scn_bis
-  in scatter (replicate (i64.i32 aoa_len) zero) shp_ind aoa_val
+  in scatter (replicate (i64.i32 aoa_len) zero) shp_ind_bis aoa_val
 
 
 let spMatVctMult [num_elms] [vct_len] [num_rows] 
