@@ -102,8 +102,8 @@ let mkFlagArray 't [m] (aoa_shp: [m]i32) (zero: t) (aoa_val : [m]t) : []i32 =
 
 
 let spMatVctMult [num_elms] [vct_len] [num_rows] 
-                 (mat_val : [num_elms](i64,f32))
-                 (mat_shp : [num_rows]i64)
+                 (mat_val : [num_elms](i32,f32))
+                 (mat_shp : [num_rows]i32)
                  (vct : [vct_len]f32) : [num_rows]f32 =
 
   let shp_sc   = scan (+) 0 mat_shp
