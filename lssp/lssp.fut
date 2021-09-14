@@ -34,7 +34,7 @@ let mapOp (pred1 : int -> bool) (x: int) : (int,int,int,int,int,int) =
 let lssp (pred1 : int -> bool) 
          (pred2 : int -> int -> bool) 
          (xs    : []int ) : int =
-  let (_,x,_,_,_,_) =
+  let (x,y,z,_,_,_) =
         reduce (redOp pred2) (0,0,0,0,0,0) <| 
         map (mapOp pred1) xs
-  in  x
+  in  x, y z
