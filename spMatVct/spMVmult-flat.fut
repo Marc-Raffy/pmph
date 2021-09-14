@@ -93,7 +93,7 @@ let sgmSumF32 [n] (flg : [n]bool) (arr : [n]f32) : [n]f32 =
 ---    with a map that extracts the last element  ---
 ---    of the segment.
 -----------------------------------------------------
-let mkFlagArray 't [m] (aoa_shp: [m]i32)  (aoa_shp: [m]i64) (zero: i64) (aoa_val : [m]t) (aoa_val : [m]i64) : []i64 = 
+let mkFlagArray 't [m]  (aoa_shp: [m]i64) (zero: i64) (aoa_val : [m]i64) : []i64 = 
   let shp_rot = map (\i->if i==0 then 0 else aoa_shp[i-1]) (iota m)
   let shp_scn = scan (+) 0 shp_rot 
   let aoa_len = shp_scn[m-1]+ aoa_shp[m-1] 
