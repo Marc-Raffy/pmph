@@ -82,7 +82,7 @@ int main(int argc, char** argv){
     // check if results match
     int flag = 0;
     for(unsigned int i=1; i<N; ++i) {
-        if(fmod(array_output[i], h_out[i]) > 0.0001){
+        if(fmod(array_output[i], h_out[i]) > 0.000001){
             flag++;
         }
     }
