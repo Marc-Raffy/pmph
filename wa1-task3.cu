@@ -47,8 +47,16 @@ int main(int argc, char** argv){
         h_in[i] = (float)i;
 		array_input[i] = (float)i;
     }
+
+    gettimeofday(&t_start, NULL);
+
     //runs CPU function
     cpu_function(array_input, array_output, N);
+
+    gettimeofday(&t_end, NULL);
+    timeval_subtract(&t_diff, &t_end, &t_start);
+    elapsed = (t_diff.tv_sec*1e6+t_diff.tv_usec);
+    printf("Took %d microseconds for the CPU execution (%.2fms)\n",elapsed,elapsed/1000.0);
 
     //allocate device memory
 	float* d_in;
@@ -59,6 +67,7 @@ int main(int argc, char** argv){
     cudaMemcpy(d_in, h_in, mem_size, cudaMemcpyHostToDevice);
 
     unsigned long int elapsed; struct timeval t_start, t_end, t_diff;
+    
     gettimeofday(&t_start, NULL);
 
     squareKernel<<< num_blocks, block_size>>>(d_in, d_out, N);
@@ -66,7 +75,7 @@ int main(int argc, char** argv){
     gettimeofday(&t_end, NULL);
     timeval_subtract(&t_diff, &t_end, &t_start);
     elapsed = (t_diff.tv_sec*1e6+t_diff.tv_usec);
-    printf("Took %d microseconds (%.2fms)\n",elapsed,elapsed/1000.0);
+    printf("Took %d microseconds for the GPU execution (%.2fms)\n",elapsed,elapsed/1000.0);
 
     cudaMemcpy(h_out, d_out, mem_size, cudaMemcpyDeviceToHost);
 
@@ -79,9 +88,9 @@ int main(int argc, char** argv){
     }
     if (flag)
     {
-        printf("%d elements that do not match", flag);
+        printf("INVALID\n");
     }else{
-        printf("CPU and GPU runs match on al elements.");
+        printf("VALID\n");
     }
     
     
