@@ -48,6 +48,8 @@ int main(int argc, char** argv){
 		array_input[i] = (float)i;
     }
 
+    unsigned long int elapsed; struct timeval t_start, t_end, t_diff;
+    
     gettimeofday(&t_start, NULL);
 
     //runs CPU function
@@ -66,8 +68,6 @@ int main(int argc, char** argv){
 
     cudaMemcpy(d_in, h_in, mem_size, cudaMemcpyHostToDevice);
 
-    unsigned long int elapsed; struct timeval t_start, t_end, t_diff;
-    
     gettimeofday(&t_start, NULL);
 
     squareKernel<<< num_blocks, block_size>>>(d_in, d_out, N);
