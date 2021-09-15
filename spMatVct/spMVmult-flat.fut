@@ -111,7 +111,7 @@ let mkFlagArray 't [m]  (aoa_shp: [m]i64) (zero: i64) (aoa_val : [m]i64) : []i64
 let spMatVctMult [num_elms] [vct_len] [num_rows] 
                  (mat_val : [num_elms](i64,f32))
                  (mat_shp : [num_rows]i64)
-                 (vct : [vct_len]f32) : []bool =
+                 (vct : [vct_len]f32) : [num_rows]f32 =
   let s1 = scan (+) 0 mat_shp
   let s2 = map (\i -> if i==0 then 0 else s1[i-1]) (iota num_rows)
   let tmp = scatter (replicate num_elms 0) s2 (map(\i -> 1) (iota num_rows))
@@ -127,11 +127,11 @@ let spMatVctMult [num_elms] [vct_len] [num_rows]
                             if shp == 0 then 0
                             else sc_mat[ip1-1]
                  ) mat_shp shp_sc
-  in mat_flg
+  in res
   
 -- One may run with for example:
 -- $ futhark dataset --i64-bounds=0:9999 -g [1000000]i64 --f32-bounds=-7.0:7.0 -g [1000000]f32 --i64-bounds=100:100 -g [10000]i64 --f32-bounds=-10.0:10.0 -g [10000]f32 | ./spMVmult-seq -t /dev/stderr > /dev/null
 let main [n] [m] 
          (mat_inds : [n]i64) (mat_vals : [n]f32) 
-         (shp : [m]i64) (vct : []f32) : []bool =
+         (shp : [m]i64) (vct : []f32) : [m]f32 =
   spMatVctMult (zip mat_inds mat_vals) shp vct
