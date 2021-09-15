@@ -93,6 +93,14 @@ let sgmSumF32 [n] (flg : [n]bool) (arr : [n]f32) : [n]f32 =
 ---    with a map that extracts the last element  ---
 ---    of the segment.
 -----------------------------------------------------
+
+let make_flags [n] (reps:[n]i32) : []i32 =
+  let s1 = scan (+) 0 reps
+  let s2 = map (\i -> if i==0 then 0 else s1[i-1]) (iota n)
+  let tmp = scatter (replicate (reduce (+) 0 reps) 0) s2 (iota n)
+  let flags = map (>0) tmp
+  in map (\i -> if i == 0 then 1 else flags[i]) flags
+
 let mkFlagArray 't [m]  (aoa_shp: [m]i64) (zero: i64) (aoa_val : [m]i64) : []i64 = 
   let shp_rot = map (\i->if i==0 then 0 else aoa_shp[i-1]) (iota m)
   let shp_scn = scan (+) 0 shp_rot 
@@ -105,14 +113,23 @@ let spMatVctMult [num_elms] [vct_len] [num_rows]
                  (mat_val : [num_elms](i64,f32))
                  (mat_shp : [num_rows]i64)
                  (vct : [vct_len]f32) : [num_rows]f32 =
-
+  let flat_val = map (\ (i, v) -> v*vct[i]) mat_val 
+  --let n = length mat_shp -- n = 3 
+  -- mat_shp = [3 ,0 ,2]
+  let mat_flg = make_flags mat_shp -- [1,0,0,1,0]
+  let sc_mat = sgmSumF32 mat_flg -- [1 ,0 ,0 ,1 , 0]
+                         flat_val -- [1 ,3 ,4 ,6 , 7]
+                                 -- [1 ,4 ,8 ,6 ,13]
   let shp_sc   = scan (+) 0 mat_shp
-    
-  in  replicate num_rows 0.0f32
+  let res = map2 (\ shp ip1 -> -- [8 ,0 ,13]
+                            if shp == 0 then 0
+                            else sc_mat[ip1-1]
+                 ) mat_shp shp_sc
+  in res
   
 -- One may run with for example:
 -- $ futhark dataset --i64-bounds=0:9999 -g [1000000]i64 --f32-bounds=-7.0:7.0 -g [1000000]f32 --i64-bounds=100:100 -g [10000]i64 --f32-bounds=-10.0:10.0 -g [10000]f32 | ./spMVmult-seq -t /dev/stderr > /dev/null
-let  main [n] [m] 
+let main [n] [m] 
          (mat_inds : [n]i64) (mat_vals : [n]f32) 
          (shp : [m]i64) (vct : []f32) : [m]f32 =
   spMatVctMult (zip mat_inds mat_vals) shp vct
