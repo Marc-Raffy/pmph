@@ -111,7 +111,7 @@ let mkFlagArray 't [m]  (aoa_shp: [m]i64) (zero: i64) (aoa_val : [m]i64) : []i64
 let spMatVctMult [num_elms] [vct_len] [num_rows] 
                  (mat_val : [num_elms](i64,f32))
                  (mat_shp : [num_rows]i64)
-                 (vct : [vct_len]f32) : [num_rows]f32 =
+                 (vct : [vct_len]f32) : []bool =
   let s1 = scan (+) 0 mat_shp
   let s2 = map (\i -> if i==0 then 1 else s1[i-1]) (iota num_rows)
   let tmp = scatter (replicate num_elms 1) s2 (map(\i -> 1) (iota num_rows))
