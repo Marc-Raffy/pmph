@@ -3,6 +3,16 @@
 #include <string.h>
 #include <math.h>
 #include <cuda_runtime.h>
+#include <time.h>
+#include <sys/time.h>
+
+int timeval_subtract( struct timeval* result, struct timeval* t2, struct timeval* t1) {
+    unsigned int resolution=1000000;
+    long int diff = (t2->tv_usec + resolution * t2->tv_sec) - (t1->tv_usec + resolution * t1->tv_sec) ;
+    result->tv_sec = diff / resolution; result->tv_usec = diff % resolution;
+    return (diff<0);
+}
+
 
 __global__ void squareKernel(float* d_in, float *d_out, int N) {
     const unsigned int lid = threadIdx.x;
@@ -48,7 +58,15 @@ int main(int argc, char** argv){
 
     cudaMemcpy(d_in, h_in, mem_size, cudaMemcpyHostToDevice);
 
+    unsigned long int elapsed; struct timeval t_start, t_end, t_diff;
+    gettimeofday(&t_start, NULL);
+
     squareKernel<<< num_blocks, block_size>>>(d_in, d_out, N);
+
+    gettimeofday(&t_end, NULL);
+    timeval_subtract(&t_diff, &t_end, &t_start);
+    elapsed = (t_diff.tv_sec*1e6+t_diff.tv_usec) / GPU_RUNS;
+    printf("Took %d microseconds (%.2fms)\n",elapsed,elapsed/1000.0);
 
     cudaMemcpy(h_out, d_out, mem_size, cudaMemcpyDeviceToHost);
 
@@ -56,7 +74,7 @@ int main(int argc, char** argv){
     int flag = 0;
     for(unsigned int i=1; i<N; ++i) {
         if(array_output[i] != h_out[i]){
-            printf("%f  %f", array_output[i], h_out[i]);
+            flag++;
         }
     }
     if (flag)
