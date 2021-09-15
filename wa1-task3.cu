@@ -16,7 +16,7 @@ __global__ void squareKernel(float* d_in, float *d_out, int N) {
 void cpu_function(float* array_input, float* array_output, int array_size){
 	for (int i = 0; i < array_size; i++)
 	{
-		array_output[i] = pow((array_input[i]/array_input[i]-2.3), 3);
+		array_output[i] = pow(array_input[i]/(array_input[i]-2.3),3);
 	}
 }
 
