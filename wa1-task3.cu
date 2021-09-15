@@ -33,7 +33,7 @@ void cpu_function(float* array_input, float* array_output, int array_size){
 int main(int argc, char** argv){
 	unsigned int N = 753412;
     unsigned int mem_size = N*sizeof(float);
-    unsigned int block_size = 1024;
+    unsigned int block_size = 2048;
     unsigned int num_blocks = ((N + (block_size - 1) / block_size));
     
     // allocate host memory for GPU function
@@ -82,7 +82,7 @@ int main(int argc, char** argv){
     // check if results match
     int flag = 0;
     for(unsigned int i=1; i<N; ++i) {
-        if(fabs(array_output[i] - h_out[i]) > 0.00000001){
+        if(fabs(array_output[i] - h_out[i]) > 0.0001){
             flag++;
         }
     }
