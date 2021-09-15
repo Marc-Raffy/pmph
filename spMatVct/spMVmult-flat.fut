@@ -114,7 +114,7 @@ let spMatVctMult [num_elms] [vct_len] [num_rows]
                  (vct : [vct_len]f32) : [num_rows]f32 =
   let s1 = scan (+) 0 mat_shp
   let s2 = map (\i -> if i==0 then 1 else s1[i-1]) (iota num_rows)
-  let tmp = scatter (replicate num_elms 1) s2 (map(\i -> 1) (map(\i -> 1) (iota n))
+  let tmp = scatter (replicate num_elms 1) s2 (map(\i -> 1) (iota num_rows))
   let mat_flg =  map (>0) tmp
   let flat_val = map (\ (i, v) -> v*vct[i]) mat_val 
   --let n = length mat_shp -- n = 3 
@@ -127,11 +127,11 @@ let spMatVctMult [num_elms] [vct_len] [num_rows]
                             if shp == 0 then 0
                             else sc_mat[ip1-1]
                  ) mat_shp shp_sc
-  in res
+  in mat_flg
   
 -- One may run with for example:
 -- $ futhark dataset --i64-bounds=0:9999 -g [1000000]i64 --f32-bounds=-7.0:7.0 -g [1000000]f32 --i64-bounds=100:100 -g [10000]i64 --f32-bounds=-10.0:10.0 -g [10000]f32 | ./spMVmult-seq -t /dev/stderr > /dev/null
 let main [n] [m] 
          (mat_inds : [n]i64) (mat_vals : [n]f32) 
-         (shp : [m]i64) (vct : []f32) : [m]f32 =
+         (shp : [m]i64) (vct : []f32) : []bool =
   spMatVctMult (zip mat_inds mat_vals) shp vct
