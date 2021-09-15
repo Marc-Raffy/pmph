@@ -56,7 +56,7 @@ int main(int argc, char** argv){
     int flag = 0;
     for(unsigned int i=1; i<N; ++i) {
         if(array_output[i] != h_out[i]){
-            flag++;
+            printf("%f  %f", array_output[i], h_out[i]);
         }
     }
     if (flag)
