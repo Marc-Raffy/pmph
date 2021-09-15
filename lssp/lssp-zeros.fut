@@ -7,6 +7,19 @@
 -- output {
 --    5
 -- }
+-- compiled input {
+--    [1i32, 0, 0, 0, 0, 0, 3, 0, 0, 1, 2, 3, 0]
+-- }
+-- output {
+--    5
+-- }
+-- compiled input {
+--    [1i32, 1, 0, 0, 2, 3, 4, 0, 0, 0]
+-- }
+-- output {
+--    3
+-- }
+
 
 import "lssp-seq"
 import "lssp"
