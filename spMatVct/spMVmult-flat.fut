@@ -114,7 +114,7 @@ let spMatVctMult [num_elms] [vct_len] [num_rows]
                  (vct : [vct_len]f32) : [num_rows]f32 =
   let s1 = scan (+) 0 mat_shp
   let s2 = map (\i -> if i==0 then 1 else s1[i-1]) (iota num_rows)
-  let tmp = scatter (replicate num_elms 0) s2 (map(\i -> 1) (iota num_rows))
+  let tmp = scatter (replicate num_elms 1) s2 (map(\i -> 1) (map(\i -> 1) (iota n))
   let mat_flg =  map (>0) tmp
   let flat_val = map (\ (i, v) -> v*vct[i]) mat_val 
   --let n = length mat_shp -- n = 3 
