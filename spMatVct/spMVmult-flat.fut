@@ -97,7 +97,7 @@ let sgmSumF32 [n] (flg : [n]bool) (arr : [n]f32) : [n]f32 =
 let make_flags [n] (reps:[n]i64) : []bool =
   let s1 = scan (+) 0 reps
   let s2 = map (\i -> if i==0 then 1 else s1[i-1]) (iota n)
-  let tmp = scatter (replicate (reduce (+) 0 reps) 0) s2 (replicate (reduce (+) 0 reps) 1)
+  let tmp = scatter (replicate (reduce (+) 0 reps) 0) s2 (map(\i -> 1) (iota n))
   in map (>0) tmp
 
 let mkFlagArray 't [m]  (aoa_shp: [m]i64) (zero: i64) (aoa_val : [m]i64) : []i64 = 
