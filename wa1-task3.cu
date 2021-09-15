@@ -63,7 +63,7 @@ int main(int argc, char** argv){
     {
         printf("%d elements that do not match", flag);
     }else{
-        printf("CPU and GPU runs match on al elements.")
+        printf("CPU and GPU runs match on al elements.");
     }
     
     
