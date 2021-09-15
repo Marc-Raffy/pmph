@@ -100,7 +100,7 @@ let make_flags [n][m] (reps:[n]i64) : []i32 =
   let tmp = scatter (replicate (reduce (+) 0 reps) 0) s2 (iota n)
   let flags = map (>0) tmp
   let size = last s1
-  let mask  = map (\i -> if i == 0 then i32 1 else i32 0) (iota size)
+  let mask  = map (\i -> if i == 0 then 1i32 else 0i32) (iota size)
   in map2 (+) flags mask
 
 let mkFlagArray 't [m]  (aoa_shp: [m]i64) (zero: i64) (aoa_val : [m]i64) : []i64 = 
