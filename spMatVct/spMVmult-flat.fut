@@ -94,12 +94,14 @@ let sgmSumF32 [n] (flg : [n]bool) (arr : [n]f32) : [n]f32 =
 ---    of the segment.
 -----------------------------------------------------
 
-let make_flags [n] (reps:[n]i64) : []i32 =
+let make_flags [n][m] (reps:[n]i64) : []i32 =
   let s1 = scan (+) 0 reps
   let s2 = map (\i -> if i==0 then 0 else s1[i-1]) (iota n)
   let tmp = scatter (replicate (reduce (+) 0 reps) 0) s2 (iota n)
   let flags = map (>0) tmp
-  in map (\i -> if i == 0 then 1 else 0) flags
+  let size = last s1
+  let mask  = map (\i -> if i == 0 then 1 else 0) (iota size)
+  in map2 (+) flags mask
 
 let mkFlagArray 't [m]  (aoa_shp: [m]i64) (zero: i64) (aoa_val : [m]i64) : []i64 = 
   let shp_rot = map (\i->if i==0 then 0 else aoa_shp[i-1]) (iota m)
