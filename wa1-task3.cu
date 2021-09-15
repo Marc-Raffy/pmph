@@ -59,7 +59,14 @@ int main(int argc, char** argv){
             flag++;
         }
     }
-    printf("%f Number of elements that do not match", flag);
+    if (flag)
+    {
+        printf("%d elements that do not match", flag);
+    }else{
+        printf("CPU and GPU runs match on al elements.")
+    }
+    
+    
 
     free(array_input); free(array_output);
     free(h_in);        free(h_out);
