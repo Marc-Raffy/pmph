@@ -65,7 +65,7 @@ int main(int argc, char** argv){
 
     gettimeofday(&t_end, NULL);
     timeval_subtract(&t_diff, &t_end, &t_start);
-    elapsed = (t_diff.tv_sec*1e6+t_diff.tv_usec) / GPU_RUNS;
+    elapsed = (t_diff.tv_sec*1e6+t_diff.tv_usec);
     printf("Took %d microseconds (%.2fms)\n",elapsed,elapsed/1000.0);
 
     cudaMemcpy(h_out, d_out, mem_size, cudaMemcpyDeviceToHost);
