@@ -52,7 +52,6 @@ let primesFlat (n : i64) : []i64 =
       -- Also note that `not_primes` has flat length equal to `flat_size`
       --  and the shape of `composite` is `mult_lens`. 
       let inds = inclusive_scan mult_lens
-      let size = (last inds) + (last mult_lens)
 
       let flag_iota_int = scatter(replicate flat_size 0) inds mult_lens
       let flag_iota =  map (>0) flag_iota_int
