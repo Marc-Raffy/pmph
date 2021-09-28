@@ -50,7 +50,7 @@ let primesFlat (n : i64) : []i64 =
       let flag_iota =  map (>0) flag_iota_int
       let tmp = replicate size 1
       let res_iota_inc = sgmScanInclusive flag_iota tmp
-      let res_iota = map (\i -> if i==0 then 0 else res_iota_inc[i-1]) (iota len(res_iota_inc))  
+      let res_iota = map (\i -> if i==0 then 0 else res_iota_inc[i-1]) (iota (len(res_iota_inc)))  
       let twom = map (+2) res_iota
       let flag_rep_int = scatter(replicate size 0) inds sq_primes
       let flag_rep =  map (>0) flag_rep_int
