@@ -57,7 +57,7 @@ let primesFlat (n : i64) : []i64 =
       let flag_iota_int = scatter(replicate flat_size 0) inds mult_lens
       let flag_iota =  map (>0) flag_iota_int
 
-      let tmp = replicate size 1
+      let tmp = replicate flat_size 1
 
       let res_iota = inclusive_segmented_scan flag_iota tmp
       let twom = map (+2) res_iota
