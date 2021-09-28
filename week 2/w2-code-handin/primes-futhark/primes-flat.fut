@@ -46,14 +46,14 @@ let primesFlat (n : i64) : []i64 =
       let inc_inds = scan(+) 0 mult_lens
       let inds = map(\i -> if i == 1 then 0 else inc_inds[i-1]) (iota (length(mult_lens)))
       let size = (last inds) + (last mult_lens)
-      let flag_iota_int = scatter(replicate size 0) inds mult_lens
+      let flag_iota_int = scatter(replicate flat_size 0) inds mult_lens
       let flag_iota =  map (>0) flag_iota_int
-      let tmp = replicate size 1
+      let tmp = replicate flat_size 1
       let res_iota_inc = segmented_scan (+) 0 flag_iota tmp
       let res_iota = map(\i -> if i == 1 then 0 else res_iota_inc[i-1]) (iota (flat_size))
       let twom = map (+2) res_iota
 
-      let flag_rep_int = scatter(replicate size 0) inds sq_primes
+      let flag_rep_int = scatter(replicate flat_size 0) inds sq_primes
       let flag_rep =  map (>0) flag_rep_int
       let res_rep = segmented_scan (+) 0 flag_rep flag_rep_int
       let not_primes = map(\(j, p) -> j*p) (zip twom res_rep)
