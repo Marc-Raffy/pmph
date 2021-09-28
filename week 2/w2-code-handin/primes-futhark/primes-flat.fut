@@ -53,8 +53,9 @@ let primesFlat (n : i64) : []i64 =
       let res_iota = map (\i -> if i==0 then 0 else res_iota_inc[i-1]) (iota (length(res_iota_inc)))  
       let twom = map (+2) res_iota
       let flag_rep_int = scatter(replicate size 0) inds sq_primes
+      let flag_rep_float = scatter(replicate size 0f32) inds sq_primes
       let flag_rep =  map (>0) flag_rep_int
-      let res_rep = sgmScanInclusive flag_rep flag_rep
+      let res_rep = sgmScanInclusive flag_rep flag_rep_float
       let composite = map(\(j, p) -> j*p) (zip twom res_rep)
 
 
