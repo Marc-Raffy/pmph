@@ -13,7 +13,7 @@ let segmented_scan [n] 't (op: t -> t -> t) (ne: t)
          ) (false, ne) (zip flags arr)
   in  res
 
-let inclusive_scan [n] 't (op: t -> t -> t) (ne: t) (arr: [n]t) : [n]i64 =
+let inclusive_scan [n] 't (op: i64 -> i64 -> i64) (ne: i64) (arr: [n]i64) : [n]i64 =
   let res_scan = scan op ne arr
   in map(\i -> if i == 0 then 0 else res_scan[i-1]) (iota (n))
 
