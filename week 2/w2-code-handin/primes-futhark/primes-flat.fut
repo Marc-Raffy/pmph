@@ -56,10 +56,7 @@ let primesFlat (n : i64) : []i64 =
       let flag_rep_int = scatter(replicate size 0) inds sq_primes
       let flag_rep =  map (>0) flag_rep_int
       let res_rep = segmented_scan (+) 0 flag_rep flag_rep_int
-      let composite = map(\(j, p) -> j*p) (zip twom res_rep)
-
-
-      let not_primes = reduce (++) [] composite
+      let not_primes = map(\(j, p) -> j*p) (zip twom res_rep)
 
       -- If not_primes is correctly computed, then the remaining
       -- code is correct and will do the job of computing the prime
