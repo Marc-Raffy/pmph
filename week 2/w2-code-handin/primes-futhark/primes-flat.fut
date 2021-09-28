@@ -15,7 +15,7 @@ let segmented_scan [n] 't (op: t -> t -> t) (ne: t)
 
 let inclusive_scan [n] 't (op: t -> t -> t) (ne: t) (arr: [n]t) : [n]t =
   let res_scan = scan op ne arr
-  in [0]++res_scan[:length(res_scan)-1]
+  in map(\i -> if i == 0 then 0 else res_scan[i-1]) (iota (n))
 
 let primesFlat (n : i64) : []i64 =
   let sq_primes   = [2i64, 3i64, 5i64, 7i64]
