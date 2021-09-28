@@ -43,7 +43,7 @@ let primesFlat (n : i64) : []i64 =
       --  where `p \in sq_primes`.
       -- Also note that `not_primes` has flat length equal to `flat_size`
       --  and the shape of `composite` is `mult_lens`. 
-      let inds_inc = scan(+) 0 mult_lens
+      let inc_inds = scan(+) 0 mult_lens
       let inds = [0] ++ inc_inds[:length(mult_lens)-1]
       let size = (last inds) + (last mult_lens)
       let flag_iota_int = scatter(replicate size 0) inds mult_lens
