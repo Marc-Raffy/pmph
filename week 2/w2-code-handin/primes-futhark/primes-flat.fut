@@ -70,7 +70,7 @@ let primesFlat (n : i64) : []i64 =
       --------------------------------------------------------------
       --------------------------------------------------------------
 
-       let zero_array = replicate flat_size 0i8
+       let zero_array = replicate size 0i8
        let mostly_ones= map (\ x -> if x > 1 then 1i8 else 0i8) (iota (len+1))
        let prime_flags= scatter mostly_ones not_primes zero_array
        let sq_primes = filter (\i-> (i > 1i64) && (i <= n) && (prime_flags[i] > 0i8))
