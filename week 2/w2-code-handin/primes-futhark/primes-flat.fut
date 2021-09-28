@@ -17,6 +17,10 @@ let inclusive_scan [n] (arr: [n]i64) : [n]i64 =
   let res_scan = scan (+) 0 arr
   in map(\i -> if i == 0 then 0 else res_scan[i-1]) (iota (n))
 
+let inclusive_segmented_scan [n] (flags: [n]bool) (arr: [n]i64) : [n]i64 =
+  let res_scan = scan (+) 0 arr
+  in map(\i -> if i == 0 then 0 else res_scan[i-1]) (iota (n))
+
 let primesFlat (n : i64) : []i64 =
   let sq_primes   = [2i64, 3i64, 5i64, 7i64]
   let len  = 8i64
@@ -57,8 +61,8 @@ let primesFlat (n : i64) : []i64 =
 
       let tmp = replicate size 1
 
-      let res_iota_inc = segmented_scan (+) 0 flag_iota tmp
-      let res_iota = map(\i -> if i == 0 then 0 else res_iota_inc[i-1]) (iota (size))
+      let res_iota = inclusive_segmented_scan flag_iota tmp
+      --let res_iota = map(\i -> if i == 0 then 0 else res_iota_inc[i-1]) (iota (size))
       let twom = map (+2) res_iota
 
       let flag_rep_int = scatter(replicate size 0) inds sq_primes
