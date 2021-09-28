@@ -13,8 +13,8 @@ let segmented_scan [n] 't (op: t -> t -> t) (ne: t)
          ) (false, ne) (zip flags arr)
   in  res
 
-let inclusive_scan [n] 't (op: t -> t -> t) (ne: t) (arr: [n]i64) : [n]i64 =
-  let res_scan = scan op ne arr
+let inclusive_scan (arr: [n]i64) : [n]i64 =
+  let res_scan = scan (+) 0 arr
   in map(\i -> if i == 0 then 0 else res_scan[i-1]) (iota (n))
 
 let primesFlat (n : i64) : []i64 =
@@ -47,7 +47,7 @@ let primesFlat (n : i64) : []i64 =
       --  where `p \in sq_primes`.
       -- Also note that `not_primes` has flat length equal to `flat_size`
       --  and the shape of `composite` is `mult_lens`. 
-      let inds = inclusive_scan(+) 0 mult_lens
+      let inds = inclusive_scan mult_lens
       --let inds = map(\i -> if i == 0 then 0 else inc_inds[i-1]) (iota (length(inc_inds)))
 
       let size = (last inds) + (last mult_lens)
