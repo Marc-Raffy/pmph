@@ -18,7 +18,7 @@ let inclusive_scan [n] (arr: [n]i64) : [n]i64 =
   in map(\i -> if i == 0 then 0 else res_scan[i-1]) (iota (n))
 
 let inclusive_segmented_scan [n] (flags: [n]bool) (arr: [n]i64) : [n]i64 =
-  let res_scan = scan (+) 0 arr
+  let res_scan = segmented_scan (+) 0 flags arr
   in map(\i -> if i == 0 then 0 else res_scan[i-1]) (iota (n))
 
 let primesFlat (n : i64) : []i64 =
