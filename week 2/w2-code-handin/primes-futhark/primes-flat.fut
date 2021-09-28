@@ -13,6 +13,10 @@ let segmented_scan [n] 't (op: t -> t -> t) (ne: t)
          ) (false, ne) (zip flags arr)
   in  res
 
+let inclusive_scan [n] 't (op: t -> t -> t) (ne: t) (arr: [n]t) : [n]t =
+  let res_scan = scan op ne arr
+  in [0]++res_scan[:length(res_scan)-1]
+
 let primesFlat (n : i64) : []i64 =
   let sq_primes   = [2i64, 3i64, 5i64, 7i64]
   let len  = 8i64
@@ -43,21 +47,21 @@ let primesFlat (n : i64) : []i64 =
       --  where `p \in sq_primes`.
       -- Also note that `not_primes` has flat length equal to `flat_size`
       --  and the shape of `composite` is `mult_lens`. 
-      let inc_inds = scan(+) 0 mult_lens
-      let inds = map(\i -> if i == 0 then 0 else inc_inds[i-1]) (iota (flat_size))
+      let inds = inclusive_scan(+) 0 mult_lens
+      --let inds = map(\i -> if i == 0 then 0 else inc_inds[i-1]) (iota (length(inc_inds)))
 
       let size = (last inds) + (last mult_lens)
 
-      let flag_iota_int = scatter(replicate flat_size 0) inds mult_lens
+      let flag_iota_int = scatter(replicate size 0) inds mult_lens
       let flag_iota =  map (>0) flag_iota_int
 
-      let tmp = replicate flat_size 1
+      let tmp = replicate size 1
 
       let res_iota_inc = segmented_scan (+) 0 flag_iota tmp
-      let res_iota = map(\i -> if i == 0 then 0 else res_iota_inc[i-1]) (iota (flat_size))
+      let res_iota = map(\i -> if i == 0 then 0 else res_iota_inc[i-1]) (iota (size))
       let twom = map (+2) res_iota
 
-      let flag_rep_int = scatter(replicate flat_size 0) inds sq_primes
+      let flag_rep_int = scatter(replicate size 0) inds sq_primes
       let flag_rep =  map (>0) flag_rep_int
 
       let res_rep = segmented_scan (+) 0 flag_rep flag_rep_int
@@ -70,7 +74,7 @@ let primesFlat (n : i64) : []i64 =
       --------------------------------------------------------------
       --------------------------------------------------------------
 
-       let zero_array = replicate flat_size 0i8
+       let zero_array = replicate size 0i8
        let mostly_ones= map (\ x -> if x > 1 then 1i8 else 0i8) (iota (len+1))
        let prime_flags= scatter mostly_ones not_primes zero_array
        let sq_primes = filter (\i-> (i > 1i64) && (i <= n) && (prime_flags[i] > 0i8))
