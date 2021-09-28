@@ -48,7 +48,7 @@ let primesFlat (n : i64) : []i64 =
       let size = (last inds) + (last mult_lens)
       let flag_iota_int = scatter(replicate size 0) inds mult_lens
       let flag_iota =  map (>0) flag_iota_int
-      let tmp = replicate flat_size 1
+      let tmp = replicate size 1
       let res_iota_inc = segmented_scan (+) 0 flag_iota tmp
       let res_iota = map(\i -> if i == 1 then 0 else res_iota_inc[i-1]) (iota (flat_size))
       let twom = map (+2) res_iota
