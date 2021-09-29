@@ -181,12 +181,11 @@ __device__ inline typename OP::RedElTp
 scanIncWarp( volatile typename OP::RedElTp* ptr, const unsigned int idx ) {
     const unsigned int lane = idx & (WARP-1);
 
-    #pragma unroll
-    for(uint32_t i=0; i<lgWARP; i++) {
-        const uint32_t p = (1<<i);
-        if( lane >= p ) {
+    if(lane==0) {
+        #pragma unroll
+        for(int i=1; i<WARP; i++) {
             ptr[idx+i] = OP::apply(ptr[idx+i-1], ptr[idx+i]);
-        } // __syncwarp();
+        }
     }
     return OP::remVolatile(ptr[idx]);
 }
@@ -386,7 +385,7 @@ redCommuKernel( typename OP::RedElTp* d_tmp
  *   This leads to "coalesced" access in the case when the element size
  *   is a word (or less). Coalesced access means that (groups of 32)
  *   consecutive threads access consecutive memory words.
- * `T` is the total number of CUDA threads spawned.
+ * 
  * `glb_offs` is the offset in global-memory array `d_inp`
  *    from where elements should be read.
  * `d_inp` is the input array stored in global memory
