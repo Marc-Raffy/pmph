@@ -185,7 +185,7 @@ scanIncWarp( volatile typename OP::RedElTp* ptr, const unsigned int idx ) {
     for(uint32_t i=0; i<lgWARP; i++) {
         const uint32_t p = (1<<i);
         if( lane >= p ) {
-            ptr[idx+i] = OP::apply(ptr[idx+i-1], ptr[idx+i]);
+            ptr[idx] = OP::apply(ptr[idx-p], ptr[idx]);
         } // __syncwarp();
     }
     return OP::remVolatile(ptr[idx]);
@@ -232,6 +232,42 @@ scanIncBlock(volatile typename OP::RedElTp* ptr, const unsigned int idx) {
 
     return res;
 }
+
+
+sgmScanIncBlock(volatile typename OP::RedElTp* ptr, volatile F* flg, const unsigned int idx) {
+    typedef ValFlg<typename OP::RedElTp> FVTup;
+    const unsigned int lane   = idx & (WARP-1);
+    const unsigned int warpid = idx >> lgWARP;
+
+    // 1. perform scan at warp level
+    FVTup res = sgmScanIncWarp<OP,F>(ptr, flg, idx);
+    __syncthreads();
+
+    // 2. if last thread in a warp, record it at the beginning of sh_data
+    if ( lane == (WARP-1) ) { flg[warpid] = res.f; ptr[warpid] = res.v; }
+    __syncthreads();
+    
+    // 3. first warp scans the per warp results (again)
+    if( warpid == 0 ) sgmScanIncWarp<OP,F>(ptr, flg, idx);
+    __syncthreads();
+
+    // 4. accumulate results from previous step;
+    if (warpid > 0) {
+        FVTup prev;
+        prev.f = (char) flg[warpid-1];
+        prev.v = OP::remVolatile(ptr[warpid-1]);
+        res = LiftOP<OP>::apply( prev, res );
+    }
+    //__syncthreads();
+    //flg[idx] = res.f;
+    //ptr[idx] = res.v;
+    //__syncthreads();
+    return res;
+}
+
+
+  
+
 /********************************************/
 /*** Naive (silly) Kernels, just for demo ***/
 /********************************************/
@@ -435,7 +471,8 @@ copyFromGlb2ShrMem( const uint32_t glb_offs
 ) {
     #pragma unroll
     for(uint32_t i=0; i<CHUNK; i++) {
-        uint32_t loc_ind = threadIdx.x*CHUNK + i;
+        //uint32_t loc_ind = threadIdx.x*CHUNK + i;
+        uint32_t loc_ind = blockDim.x*i + threadIdx.x;
         uint32_t glb_ind = glb_offs + loc_ind;
         T elm = ne;
         if(glb_ind < N) { elm = d_inp[glb_ind]; }
@@ -465,7 +502,7 @@ copyFromShr2GlbMem( const uint32_t glb_offs
 ) {
     #pragma unroll
     for (uint32_t i = 0; i < CHUNK; i++) {
-        uint32_t loc_ind = threadIdx.x * CHUNK + i;
+        uint32_t loc_ind = blockDim.x*i + threadIdx.x;
         uint32_t glb_ind = glb_offs + loc_ind;
         if (glb_ind < N) {
             T elm = const_cast<const T&>(shmem_red[loc_ind]);

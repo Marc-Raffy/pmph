@@ -1,7 +1,8 @@
 -- Primes: Flat-Parallel Version
 -- ==
 -- compiled input { 30i64 } output { [2i64, 3i64, 5i64, 7i64, 11i64, 13i64, 17i64, 19i64, 23i64, 29i64] }
--- compiled input { 100000i64 } auto output
+-- compiled input { 100000i64 }
+-- output 
 
 let segmented_scan [n] 't (op: t -> t -> t) (ne: t)
                           (flags: [n]bool) (arr: [n]t) : [n]t =
