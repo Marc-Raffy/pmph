@@ -1,4 +1,4 @@
-#define SP_MV_MUL_KERS
+#ifndef SP_MV_MUL_KERS
 #define SP_MV_MUL_KERS
 
 __global__ void
