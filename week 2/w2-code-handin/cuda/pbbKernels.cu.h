@@ -233,41 +233,6 @@ scanIncBlock(volatile typename OP::RedElTp* ptr, const unsigned int idx) {
     return res;
 }
 
-
-sgmScanIncBlock(volatile typename OP::RedElTp* ptr, volatile F* flg, const unsigned int idx) {
-    typedef ValFlg<typename OP::RedElTp> FVTup;
-    const unsigned int lane   = idx & (WARP-1);
-    const unsigned int warpid = idx >> lgWARP;
-
-    // 1. perform scan at warp level
-    FVTup res = sgmScanIncWarp<OP,F>(ptr, flg, idx);
-    __syncthreads();
-
-    // 2. if last thread in a warp, record it at the beginning of sh_data
-    if ( lane == (WARP-1) ) { flg[warpid] = res.f; ptr[warpid] = res.v; }
-    __syncthreads();
-    
-    // 3. first warp scans the per warp results (again)
-    if( warpid == 0 ) sgmScanIncWarp<OP,F>(ptr, flg, idx);
-    __syncthreads();
-
-    // 4. accumulate results from previous step;
-    if (warpid > 0) {
-        FVTup prev;
-        prev.f = (char) flg[warpid-1];
-        prev.v = OP::remVolatile(ptr[warpid-1]);
-        res = LiftOP<OP>::apply( prev, res );
-    }
-    //__syncthreads();
-    //flg[idx] = res.f;
-    //ptr[idx] = res.v;
-    //__syncthreads();
-    return res;
-}
-
-
-  
-
 /********************************************/
 /*** Naive (silly) Kernels, just for demo ***/
 /********************************************/
