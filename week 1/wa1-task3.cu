@@ -84,6 +84,7 @@ int main(int argc, char** argv){
     for(unsigned int i=1; i<N; ++i) {
         if(fabs(array_output[i] - h_out[i]) > 0.0001){
             flag++;
+            printf(fabs(array_output[i] - h_out[i]));
         }
     }
     if (flag)
