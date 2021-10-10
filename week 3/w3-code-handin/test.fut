@@ -8,4 +8,4 @@
 -- } 
 
 let main (A: []i32) : []i32 =
-    map2(\i j -> scan (**) 0 A) A
+    map2(\i j -> scan (+) 0 A) A
