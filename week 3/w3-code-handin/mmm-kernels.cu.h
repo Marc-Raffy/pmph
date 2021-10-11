@@ -81,6 +81,7 @@ __global__ void matMultRegTiledKer(ElTp* A, ElTp* B, ElTp* C, int heightA, int w
     if(ii < heightA and jjj < widthB){
       float cs[T];
       if(jj < widthB && j < widthB){
+        #pragma unroll
         for(int i=0; i < heightA - ii; i++){
           cs[i] = 0.0;
         }
@@ -101,6 +102,7 @@ __global__ void matMultRegTiledKer(ElTp* A, ElTp* B, ElTp* C, int heightA, int w
         }
       }
       if(jj < widthB and j < widthB){
+        #pragma unroll
         for(int i=0;i<heightA;i++){
           C[j*widthB+i] = cs[i];
         }
