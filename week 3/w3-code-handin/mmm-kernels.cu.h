@@ -76,7 +76,7 @@ __global__ void matMultRegTiledKer(ElTp* A, ElTp* B, ElTp* C, int heightA, int w
     int gidy = blockIdx.y*blockDim.y + threadIdx.y;
 
     int ii   = blockIdx.y*T;
-    int jjj  = blockIdx.y*T**2;
+    int jjj  = blockIdx.y*T*T;
     int jj   = jjj + threadIdx.y*T;
     int j    = jj + threadIdx.x;
 
