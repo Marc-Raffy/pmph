@@ -91,20 +91,20 @@ __global__ void matMultRegTiledKer(ElTp* A, ElTp* B, ElTp* C, int heightA, int w
         Ash[threadIdx.y][threadIdx.x] = ((ii + threadIdx.y < heightA) && (kk+threadIdx.x < widthA)) ?
           A[(ii + threadIdx.y)*widthA + kk + threadIdx.x] : 0.0;
         __syncthreads();
-        for(int k = 0; k< widthA - kk, k++){
-          /*if(jj < widthB && j < widthB){
+        for(int k = 0; k< widthA - kk; k++){
+          if(jj < widthB && j < widthB){
             float b = B[k, j];
             #pragma unroll
             for(int i = 0; i< heightA - ii; i++){
               cs[i] += Ash[i, k] * b;
             }
-          }*/
+          }
         }
         __syncthreads();
       }
       if(ii < heightA and jjj < widthB){
       {
-        for(int i=0;i<M-ii;i++){
+        for(int i=0;i<heightA-ii;i++){
           C[i,j] = cs[i];
         }
       }
