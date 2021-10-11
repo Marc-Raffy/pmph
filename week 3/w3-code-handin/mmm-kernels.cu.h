@@ -96,7 +96,7 @@ __global__ void matMultRegTiledKer(ElTp* A, ElTp* B, ElTp* C, int heightA, int w
             float b = B[(widthA - kk)*k + j];
             #pragma unroll
             for(int i = 0; i< heightA - ii; i++){
-              cs[i] += Ash[i, k] * b;
+              cs[i] += Ash[i][k] * b;
             }
           }
         }
