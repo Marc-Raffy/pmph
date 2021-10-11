@@ -75,8 +75,8 @@ __global__ void matMultRegTiledKer(ElTp* A, ElTp* B, ElTp* C, int heightA, int w
 
     int ii   = blockIdx.y*T;
     int jjj  = blockIdx.x*T*T;
-    int jj   = jjj + threadIdx.y*T;
-    int j    = jj + threadIdx.x;
+    int jj   = threadIdx.y*T;
+    int j    = threadIdx.x;
 
     if(ii < heightA && jjj < widthB){
       float cs[T];
