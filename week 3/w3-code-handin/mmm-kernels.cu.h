@@ -71,6 +71,44 @@ template <class ElTp, int T>
 __global__ void matMultRegTiledKer(ElTp* A, ElTp* B, ElTp* C, int heightA, int widthB, int widthA) {
     // ToDo: fill in the kernel implementation of register+block tiled 
     //       matrix-matrix multiplication here
+    __shared__ ElTp Ash[T][T];
+    int gidx = blockIdx.x*blockDim.x + threadIdx.x;
+    int gidy = blockIdx.y*blockDim.y + threadIdx.y;
+
+    int ii   = blockIdx.y*T
+    int jjj  = blockIdx.y*T**2
+    int jj   = jjj + threadIdx.y*T
+    int j    = jj + threadIdx.x
+
+    if(ii < heightA and jjj < widthB){
+      float cs[T]
+      if(jj < widthB && j < widthB){
+        for(i=0; i < heightA - ii; i++){
+          cs[i] = 0.0;
+        }
+      }
+      for (kk = 0; kk < widthA; kk+=T){
+        Ash[threadIdx.y][threadIdx.x] = ((ii + threadIdx.y < heightA) && (kk+threadIdx.x < widthA)) ?
+            A[(ii + threadIdx.y)*widthA + kk + threadIdx.x] : 0.0;
+        __syncthreads();
+        for(k = kk; k<min(kk+T, widthA), k++){
+          if(jj < widthB && j < widthB){
+            float b = B[k, j];
+            #pragma unroll
+            for(i = 0; i< heightA - ii; i++){
+              cs[i] += Ash[i, k] * b
+            }
+          }
+        }
+        __syncthreads();
+      }
+      if(ii < heightA and jjj < widthB){
+      {
+        for(i=0;i<M-ii;i++){
+          C[i,j] = cs[i]
+        }
+      }
+    }
 }
 
 
