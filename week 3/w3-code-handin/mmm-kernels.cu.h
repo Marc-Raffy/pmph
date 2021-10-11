@@ -72,11 +72,9 @@ __global__ void matMultRegTiledKer(ElTp* A, ElTp* B, ElTp* C, int heightA, int w
     // ToDo: fill in the kernel implementation of register+block tiled 
     //       matrix-matrix multiplication here
     __shared__ ElTp Ash[T][T];
-    //int gidx = blockIdx.x*blockDim.x + threadIdx.x;
-    //int gidy = blockIdx.y*blockDim.y + threadIdx.y;
 
     int ii   = blockIdx.y*T;
-    int jjj  = blockIdx.y*T*T;
+    int jjj  = blockIdx.x*T*T;
     int jj   = jjj + threadIdx.y*T;
     int j    = jj + threadIdx.x;
 
