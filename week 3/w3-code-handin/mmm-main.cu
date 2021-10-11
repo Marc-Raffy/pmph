@@ -189,8 +189,8 @@ int main() {
    //       (for TILE = 16)
    {
       // 1. you would probably want to compute some valid grid and block here
-      int  dimy = 0;//ceil( ((float)HEIGHT_A)/TILE ); 
-      int  dimx = 0;//ceil( ((float) WIDTH_B)/(TILE*TILE) );
+      int  dimy = ceil( ((float)HEIGHT_A)/TILE ); 
+      int  dimx = ceil( ((float) WIDTH_B)/(TILE*TILE) );
       dim3 block(TILE, TILE, 1);
       dim3 grid (dimx, dimy, 1);
 

@@ -71,7 +71,7 @@ template <class ElTp, int T>
 __global__ void matMultRegTiledKer(ElTp* A, ElTp* B, ElTp* C, int heightA, int widthB, int widthA) {
     // ToDo: fill in the kernel implementation of register+block tiled 
     //       matrix-matrix multiplication here
-    __shared__ ElTp Ash[T][T];
+    /*__shared__ ElTp Ash[T][T];
     int gidx = blockIdx.x*blockDim.x + threadIdx.x;
     int gidy = blockIdx.y*blockDim.y + threadIdx.y;
 
@@ -109,7 +109,7 @@ __global__ void matMultRegTiledKer(ElTp* A, ElTp* B, ElTp* C, int heightA, int w
         }
       }
     }
-  }
+  }*/
 }
 
 
