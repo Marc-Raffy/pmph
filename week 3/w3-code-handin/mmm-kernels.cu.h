@@ -81,7 +81,7 @@ __global__ void matMultRegTiledKer(ElTp* A, ElTp* B, ElTp* C, int heightA, int w
     int j    = jj + threadIdx.x;
 
     if(ii < heightA and jjj < widthB){
-      float cs[T]
+      float cs[T];
       if(jj < widthB && j < widthB){
         for(i=0; i < heightA - ii; i++){
           cs[i] = 0.0;
