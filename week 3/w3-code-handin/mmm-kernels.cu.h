@@ -82,7 +82,7 @@ __global__ void matMultRegTiledKer(ElTp* A, ElTp* B, ElTp* C, int heightA, int w
       float cs[T];
       if(jj < widthB && j < widthB){
         for(int i=0; i < heightA - ii; i++){
-          cs[i] = 0.0;
+          cs[i] = 1.0;
         }
       }
       for (int kk = 0; kk < widthA; kk+=T){
