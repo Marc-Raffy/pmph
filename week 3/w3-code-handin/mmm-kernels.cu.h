@@ -78,7 +78,7 @@ __global__ void matMultRegTiledKer(ElTp* A, ElTp* B, ElTp* C, int heightA, int w
     int jj   = jjj + threadIdx.y*T;
     int j    = jj + threadIdx.x;
 
-    if(ii < heightA and jjj < widthB){
+    if(ii < heightA && jjj < widthB){
       float cs[T];
       if(jj < widthB && j < widthB){
         #pragma unroll
@@ -101,7 +101,7 @@ __global__ void matMultRegTiledKer(ElTp* A, ElTp* B, ElTp* C, int heightA, int w
           }
         }
       }
-      if(jj < widthB and j < widthB){
+      if(jj < widthB && j < widthB){
         #pragma unroll
         for(int i=0;i<T;i++){
           C[j*widthB+i] = cs[i];
