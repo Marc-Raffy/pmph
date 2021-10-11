@@ -95,10 +95,10 @@ __global__ void matMultRegTiledKer(ElTp* A, ElTp* B, ElTp* C, int heightA, int w
             #pragma unroll
             for(int i = 0; i< heightA - ii; i++){
               cs[i] += Ash[i][k] * b;
+            __syncthreads();
             }
           }
         }
-        __syncthreads();
       }
       if(jj < widthB and j < widthB){
       {
