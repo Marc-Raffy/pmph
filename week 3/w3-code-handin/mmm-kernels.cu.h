@@ -109,6 +109,7 @@ __global__ void matMultRegTiledKer(ElTp* A, ElTp* B, ElTp* C, int heightA, int w
         }
       }
     }
+  }
 }
 
 
