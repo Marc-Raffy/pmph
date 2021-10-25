@@ -1,13 +1,7 @@
 #define BLOCK_SIZE 128
-#define NUM_BANKS 32
-#define LOG_NUM_BANKS 5
-
-#ifdef ZERO_BANK_CONFLICTS
-#define CONFLICT_FREE_OFFSET(n) \
-    ((n) >> NUM_BANKS + (n) >> (2 * LOG_NUM_BANKS))
-#else
-#define CONFLICT_FREE_OFFSET(n) ((n) >> LOG_NUM_BANKS)
-#endif
+#define NUM_BANKS 16 
+#define LOG_NUM_BANKS 4 
+#define CONFLICT_FREE_OFFSET(n) \     ((n) >> NUM_BANKS + (n) >> (2 * LOG_NUM_BANKS)) 
 
 //NVIDIA prefix sum scan
 __global__ void prescan(unsigned int *g_odata, unsigned int *g_idata, int n) { 
