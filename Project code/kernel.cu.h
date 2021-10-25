@@ -10,16 +10,16 @@
 #endif
 
 //NVIDIA prefix sum scan
-__global__ void prescan(float *g_odata, float *g_idata, int n) { 
+__global__ void prescan(unsigned int *g_odata, unsigned int *g_idata, int n) { 
     extern __shared__ float temp[];
     int thid = threadIdx.x;
     int offset = 1; 
        int ai = thid; 
        int bi = thid + (n/2); 
-       int bankOffsetA = CONFLICT_FREE_OFFSET(ai) 
-       int bankOffsetB = CONFLICT_FREE_OFFSET(bi) 
-       temp[ai + bankOffsetA] = g_idata[ai] 
-       temp[bi + bankOffsetB] = g_idata[bi] ; 
+       int bankOffsetA = CONFLICT_FREE_OFFSET(ai);
+       int bankOffsetB = CONFLICT_FREE_OFFSET(bi);
+       temp[ai + bankOffsetA] = g_idata[ai];
+       temp[bi + bankOffsetB] = g_idata[bi]; 
     for (int d = n>>1; d > 0; d >>= 1){ 
         __syncthreads();
         if (thid < d)
@@ -75,12 +75,12 @@ __global__ void gpu_radix_sort_local(unsigned int* d_out_sorted,
     unsigned int cpy_idx = BLOCK_SIZE * blockIdx.x + thIdx;
     //Check that we currently within the bounds of the input array
     if (cpy_idx < d_in_len)
-        s_data[thid] = d_in[cpy_idx];
+        s_data[thIdx] = d_in[cpy_idx];
     else
-        s_data[thid] = 0;
+        s_data[thIdx] = 0;
     //Synchronize threads so that shared data is properly innitialized
     __syncthreads();
-
+    unsigned int t_data = s_data[thIdx];
     unsigned int radix = (s_data[thIdx] >> input_shift_width) & 3;
     //s_mask_out = &s_data[128];
     for (unsigned int i = 0; i < 4; ++i)
@@ -119,7 +119,7 @@ __global__ void gpu_radix_sort_local(unsigned int* d_out_sorted,
         unsigned int cpy_val = 0;
         cpy_val = s_mask_out[thIdx];
         __syncthreads();
-        s_mask_out[thid + 1] = cpy_val;
+        s_mask_out[thIdx + 1] = cpy_val;
         __syncthreads();
 
         if (thIdx == 0)
@@ -130,16 +130,13 @@ __global__ void gpu_radix_sort_local(unsigned int* d_out_sorted,
             s_mask_out_sums[i] = total_sum;
             d_block_sums[i * gridDim.x + blockIdx.x] = total_sum;
         }
-    }
-    __syncthreads();
-
+        __syncthreads();
         if (val_equals_i && (cpy_idx < d_in_len))
         {
             s_merged_scan_mask_out[thIdx] = s_mask_out[thIdx];
         }
-
         __syncthreads();
-    }
+    }  
 
     // Scan mask output sums
     // Just do a naive scan since the array is really small
@@ -159,7 +156,7 @@ __global__ void gpu_radix_sort_local(unsigned int* d_out_sorted,
     {
         // Calculate the new indices of the input elements for sorting
         unsigned int t_prefix_sum = s_merged_scan_mask_out[thIdx];
-        unsigned int new_pos = t_prefix_sum + s_scan_mask_out_sums[t_2bit_extract];
+        unsigned int new_pos = t_prefix_sum + s_scan_mask_out_sums[radix];
         
         __syncthreads();
 
@@ -220,17 +217,17 @@ void radix_sort(unsigned int* const d_out,
 
     unsigned int* d_prefix_sums;
     unsigned int d_prefix_sums_len = d_in_len;
-    checkCudaErrors(cudaMalloc(&d_prefix_sums, sizeof(unsigned int) * d_prefix_sums_len));
-    checkCudaErrors(cudaMemset(d_prefix_sums, 0, sizeof(unsigned int) * d_prefix_sums_len));
+    cudaMalloc(&d_prefix_sums, sizeof(unsigned int) * d_prefix_sums_len);
+    cudaMemset(d_prefix_sums, 0, sizeof(unsigned int) * d_prefix_sums_len);
 
     unsigned int* d_block_sums;
     unsigned int d_block_sums_len = 4 * grid_sz; // 4-way split
-    checkCudaErrors(cudaMalloc(&d_block_sums, sizeof(unsigned int) * d_block_sums_len));
-    checkCudaErrors(cudaMemset(d_block_sums, 0, sizeof(unsigned int) * d_block_sums_len));
+    cudaMalloc(&d_block_sums, sizeof(unsigned int) * d_block_sums_len);
+    cudaMemset(d_block_sums, 0, sizeof(unsigned int) * d_block_sums_len);
 
     unsigned int* d_scan_block_sums;
-    checkCudaErrors(cudaMalloc(&d_scan_block_sums, sizeof(unsigned int) * d_block_sums_len));
-    checkCudaErrors(cudaMemset(d_scan_block_sums, 0, sizeof(unsigned int) * d_block_sums_len));
+    cudaMalloc(&d_scan_block_sums, sizeof(unsigned int) * d_block_sums_len);
+    cudaMemset(d_scan_block_sums, 0, sizeof(unsigned int) * d_block_sums_len);
 
     // shared memory consists of 3 arrays the size of the block-wise input
     //  and 2 arrays the size of n in the current n-way split (4)
@@ -273,10 +270,9 @@ void radix_sort(unsigned int* const d_out,
                                                     d_in_len, 
                                                     max_elems_per_block);
     }
-    checkCudaErrors(cudaMemcpy(d_out, d_in, sizeof(unsigned int) * d_in_len, cudaMemcpyDeviceToDevice));
+    cudaMemcpy(d_out, d_in, sizeof(unsigned int) * d_in_len, cudaMemcpyDeviceToDevice);
 
-    checkCudaErrors(cudaFree(d_scan_block_sums));
-    checkCudaErrors(cudaFree(d_block_sums));
-    checkCudaErrors(cudaFree(d_prefix_sums));
-}
+    cudaFree(d_scan_block_sums);
+    cudaFree(d_block_sums);
+    cudaFree(d_prefix_sums);
 }
