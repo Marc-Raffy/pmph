@@ -17,7 +17,7 @@ int main()
 {
     std::clock_t start;
     
-    unsigned int num_elems = (1 << 16);
+    unsigned int num_elems = (1 << 4);
     unsigned int* h_in = new unsigned int[num_elems];
     unsigned int* h_in_rand = new unsigned int[num_elems];
     unsigned int* h_out_gpu = new unsigned int[num_elems];
@@ -53,7 +53,11 @@ int main()
         }
     }
     std::cout << "Match: " << match << std::endl;
-
+    for (int i = 0; i < num_elems; i++)
+    {
+        std::cout <<  h_out_gpu[i] << std::endl;
+    }
+    
 
     cudaMemcpy(h_out_gpu, d_out, sizeof(unsigned int) * num_elems, cudaMemcpyDeviceToHost);
     cudaFree(d_out);
