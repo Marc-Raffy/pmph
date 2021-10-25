@@ -53,10 +53,10 @@ int main()
         }
     }
     std::cout << "Match: " << match << std::endl;
-    for (int i = 0; i < num_elems; i++)
+    /*for (int i = 0; i < num_elems; i++)
     {
         std::cout <<  h_out_gpu[i] << std::endl;
-    }
+    }*/
     
 
     cudaMemcpy(h_out_gpu, d_out, sizeof(unsigned int) * num_elems, cudaMemcpyDeviceToHost);
