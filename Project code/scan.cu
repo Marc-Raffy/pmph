@@ -51,7 +51,7 @@ __global__ void prescan(unsigned int *g_odata, unsigned int *g_idata, int n) {
     g_odata[bi] = temp[bi + bankOffsetB]; 
 } 
 
-void scanLargeEvenDeviceArray(unsigned int *d_out, unsigned int *d_in, int length) {
+void prefixsumScan(unsigned int *d_out, unsigned int *d_in, int length) {
 	const int blocks = length / ELEMENTS_PER_BLOCK;
 	const int sharedMemArraySize = ELEMENTS_PER_BLOCK * sizeof(int);
 
