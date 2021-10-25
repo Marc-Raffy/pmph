@@ -1,1 +1,0 @@
-void prefixsumScan(unsigned int *d_out, unsigned int *d_in, int length);

@@ -1,5 +1,5 @@
 #define BLOCK_SIZE 128
-#include "scan.h"
+#include "scan.cuh"
 
 //NVIDIA prefix sum scan
 
