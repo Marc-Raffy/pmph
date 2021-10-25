@@ -259,7 +259,7 @@ void radix_sort(unsigned int* const d_out,
         
 
         // scan global block sum array
-        prescan(d_scan_block_sums, d_block_sums, d_block_sums_len);
+        prescan<<<grid_sz, block_sz>>>(d_scan_block_sums, d_block_sums, d_block_sums_len);
 
         // scatter/shuffle block-wise sorted array to final positions
         gpu_glbl_shuffle<<<grid_sz, block_sz>>>(d_in, 
