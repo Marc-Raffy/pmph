@@ -1,54 +1,8 @@
 #define BLOCK_SIZE 128
-#define NUM_BANKS 16 
-#define LOG_NUM_BANKS 4 
-#define CONFLICT_FREE_OFFSET(n) \
-((n) >> NUM_BANKS + (n) >> (2 * LOG_NUM_BANKS)) 
+#include "scan.h"
 
 //NVIDIA prefix sum scan
-__global__ void prescan(unsigned int *g_odata, unsigned int *g_idata, int n) { 
-    extern __shared__ float temp[];
-    int thid = threadIdx.x;
-    int offset = 1; 
-       int ai = thid; 
-       int bi = thid + (n/2); 
-       int bankOffsetA = CONFLICT_FREE_OFFSET(ai);
-       int bankOffsetB = CONFLICT_FREE_OFFSET(bi);
-       temp[ai + bankOffsetA] = g_idata[ai];
-       temp[bi + bankOffsetB] = g_idata[bi]; 
-    for (int d = n>>1; d > 0; d >>= 1){ 
-        __syncthreads();
-        if (thid < d)
-        { 
-            int ai = offset*(2*thid+1)-1;
-            int bi = offset*(2*thid+2)-1;
-            ai += CONFLICT_FREE_OFFSET(ai);
-            bi += CONFLICT_FREE_OFFSET(bi);
-            temp[bi] += temp[ai];    
-        }    
-    offset *= 2; 
-    } 
-    if (thid==0) 
-    {
-        temp[n - 1 + CONFLICT_FREE_OFFSET(n - 1)] = 0;
-    }
-    for (int d = 1; d < n; d *= 2) {
-        offset >>= 1;
-        __syncthreads();
-        if (thid < d)
-        { 
-            int ai = offset*(2*thid+1)-1;
-            int bi = offset*(2*thid+2)-1;
-            ai += CONFLICT_FREE_OFFSET(ai);
-            bi += CONFLICT_FREE_OFFSET(bi);
-            float t = temp[ai];
-            temp[ai] = temp[bi]; 
-            temp[bi] += t;       
-        } 
-    }  
-    __syncthreads(); 
-    g_odata[ai] = temp[ai + bankOffsetA];
-    g_odata[bi] = temp[bi + bankOffsetB]; 
-} 
+
 
 __global__ void gpu_radix_sort_local(unsigned int* d_out_sorted,
     unsigned int* d_prefix_sums,
@@ -254,7 +208,7 @@ void radix_sort(unsigned int* const d_out,
         
 
         // scan global block sum array
-        prescan<<<grid_sz, block_sz>>>(d_scan_block_sums, d_block_sums, d_block_sums_len);
+        prefixsumScan(d_scan_block_sums, d_block_sums, d_block_sums_len);
         unsigned int* h_test = new unsigned int[d_block_sums_len];
         (cudaMemcpy(h_test, d_scan_block_sums, sizeof(unsigned int) * d_in_len, cudaMemcpyDeviceToHost));
         for (unsigned int i = 0; i < d_in_len; ++i)
