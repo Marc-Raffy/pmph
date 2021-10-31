@@ -59,5 +59,5 @@ void prefixsumScan(unsigned int *d_out, unsigned int *d_in, int length) {
     std::cout << "prefix sum scan was called";
     unsigned int shared_mem = BLOCK_SIZE + (BLOCK_SIZE >> LOG_NUM_BANKS);
 	const int blocks = length / ELEMENTS_PER_BLOCK;
-    prescan<<<blocks, 128, sizeof(unsigned int) * shared_mem>>>();
+    prescan<<<1, 128, sizeof(unsigned int) * shared_mem>>>();
 }
