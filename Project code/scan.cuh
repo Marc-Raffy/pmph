@@ -71,5 +71,5 @@ void prefixsumScan(unsigned int *d_out, unsigned int *d_in, int length) {
     if(length%128 != 0){
         blocks++;
     }
-    prescan<<<1, 4, sizeof(float) * shared_mem>>>(d_out, d_in, ELEMENTS_PER_BLOCK);
+    prescan<<<blocks, 128, sizeof(float) * shared_mem>>>(d_out, d_in, ELEMENTS_PER_BLOCK);
 }
