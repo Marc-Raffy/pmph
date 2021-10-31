@@ -1,6 +1,6 @@
 #define BLOCK_SIZE 128
-#define NUM_BANKS 16 
-#define LOG_NUM_BANKS 4 
+#define NUM_BANKS 32
+#define LOG_NUM_BANKS 5
 #define CONFLICT_FREE_OFFSET(n) \
 ((n) >> NUM_BANKS + (n) >> (2 * LOG_NUM_BANKS)) 
 #define THREADS_PER_BLOCK 512
