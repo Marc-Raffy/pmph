@@ -12,7 +12,6 @@ __global__ void prescan() {
     # if __CUDA_ARCH__ >= 200
     printf("I am in the scan");
     # endif
-    std::cout<< "scan was done somehow" << "  ";
     /*extern __shared__ float temp[];
     int thid = threadIdx.x;
     int offset = 1; 
