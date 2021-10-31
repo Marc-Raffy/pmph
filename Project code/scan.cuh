@@ -18,51 +18,54 @@ __global__ void prescan(unsigned int *g_odata, unsigned int *g_idata, int n)
     int offset = 1; 
     int ai = thid; 
     int bi = thid + (n/2); 
-    if(bi<blockDim.x){
-        int bankOffsetA = CONFLICT_FREE_OFFSET(ai);
-        int bankOffsetB = CONFLICT_FREE_OFFSET(bi);
+    int bankOffsetA = CONFLICT_FREE_OFFSET(ai);
+    int bankOffsetB = CONFLICT_FREE_OFFSET(bi);
+    int g_index = BLOCK_SIZE * blockIdx.x + threadIdx.x;
+    temp[g_index] = 0;
+    __syncthreads();
+
+    if(g_index < n){
         temp[ai + bankOffsetA] = g_idata[ai];
-        # if __CUDA_ARCH__ >= 200
-        printf("2\n");
-        # endif
-        temp[bi + bankOffsetB] = g_idata[bi]; 
-        # if __CUDA_ARCH__ >= 200
-        printf("3\n");
-        # endif
-        for (int d = n>>1; d > 0; d >>= 1){ 
-            __syncthreads();
-            if (thid < d)
-            { 
-                int ai = offset*(2*thid+1)-1;
-                int bi = offset*(2*thid+2)-1;
-                ai += CONFLICT_FREE_OFFSET(ai);
-                bi += CONFLICT_FREE_OFFSET(bi);
-                temp[bi] += temp[ai];    
-            }    
-            offset *= 2; 
-        } 
-        if (thid==0) 
-        {
-            temp[n - 1 + CONFLICT_FREE_OFFSET(n - 1)] = 0;
+        if(bi < n){
+            temp[bi + bankOffsetB] = g_idata[bi];   
         }
-        for (int d = 1; d < n; d *= 2) {
-            offset >>= 1;
-            __syncthreads();
-            if (thid < d)
-            { 
-                int ai = offset*(2*thid+1)-1;
-                int bi = offset*(2*thid+2)-1;
-                ai += CONFLICT_FREE_OFFSET(ai);
-                bi += CONFLICT_FREE_OFFSET(bi);
-                float t = temp[ai];
-                temp[ai] = temp[bi]; 
-                temp[bi] += t;       
-            } 
-        }  
-        __syncthreads(); 
-        g_odata[ai] = temp[ai + bankOffsetA];
-        g_odata[bi] = temp[bi + bankOffsetB];
     }
+    
+    for (int d = n>>1; d > 0; d >>= 1){ 
+        __syncthreads();
+        if (thid < d)
+        { 
+            int ai = offset*(2*thid+1)-1;
+            int bi = offset*(2*thid+2)-1;
+            ai += CONFLICT_FREE_OFFSET(ai);
+            bi += CONFLICT_FREE_OFFSET(bi);
+            temp[bi] += temp[ai];    
+        }    
+        offset *= 2; 
+    } 
+    if (thid==0) 
+    {
+        temp[n - 1 + CONFLICT_FREE_OFFSET(n - 1)] = 0;
+    }
+    for (int d = 1; d < n; d *= 2) {
+        offset >>= 1;
+        __syncthreads();
+        if (thid < d)
+        { 
+            int ai = offset*(2*thid+1)-1;
+            int bi = offset*(2*thid+2)-1;
+            ai += CONFLICT_FREE_OFFSET(ai);
+            bi += CONFLICT_FREE_OFFSET(bi);
+            float t = temp[ai];
+            temp[ai] = temp[bi]; 
+            temp[bi] += t;       
+        } 
+    }  
+    __syncthreads(); 
+    g_odata[ai] = temp[ai + bankOffsetA];
+    g_odata[bi] = temp[bi + bankOffsetB];
+    
+    
 } 
 
 void prefixsumScan(unsigned int *d_out, unsigned int *d_in, int length) {
