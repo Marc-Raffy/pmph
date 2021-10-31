@@ -195,7 +195,7 @@ void radix_sort(unsigned int* const d_out,
 
     // for every 2 bits from LSB to MSB:
     //  block-wise radix sort (write blocks back to global memory)
-    for (unsigned int shift_width = 0; shift_width <= 6; shift_width += 2)
+    for (unsigned int shift_width = 0; shift_width <= 32; shift_width += 2)
     {
         gpu_radix_sort_local<<<grid_sz, block_sz, shmem_sz>>>(d_out, 
                                                                 d_prefix_sums, 
