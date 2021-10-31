@@ -25,13 +25,19 @@ __global__ void prescan(unsigned int *g_odata, unsigned int *g_idata, int n)
     __syncthreads();
 
     if(g_index < n){
+        # if __CUDA_ARCH__ >= 200
+        printf("2\n");
+        # endif
         temp[ai + bankOffsetA] = g_idata[ai];
         if(bi < n){
+            # if __CUDA_ARCH__ >= 200
+            printf("3\n");
+            # endif
             temp[bi + bankOffsetB] = g_idata[bi];   
         }
     }
     # if __CUDA_ARCH__ >= 200
-    printf("2\n");
+    printf("4\n");
     # endif
     for (int d = n>>1; d > 0; d >>= 1){ 
         __syncthreads();
