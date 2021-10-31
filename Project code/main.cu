@@ -46,7 +46,8 @@ int main()
     for (int i = 0; i < num_elems; ++i)
     {
         if (h_out_cpu[i] != h_out_gpu[i])
-            //std::cout << "%d%d", h_out_cpu[i], h_out_gpu[i]) << std:endl;
+        {
+            std::cout<< h_out_cpu[i] << " -- " << h_out_gpu[i]<< std::endl;
             match = false;
             index_diff = i;
             break;
