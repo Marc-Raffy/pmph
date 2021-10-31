@@ -32,6 +32,9 @@ __global__ void prescan(unsigned int *g_odata, unsigned int *g_idata, int n)
             temp[bi + bankOffsetB] = g_idata[bi];   
         }
     }
+    #if __CUDA_ARCH__ >= 200
+    printf("3");
+    #endif
     for (int d = n>>1; d > 0; d >>= 1){ 
         __syncthreads();
         if (thid < d)
