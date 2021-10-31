@@ -10,7 +10,7 @@
 
 __global__ void prescan(unsigned int *g_odata, unsigned int *g_idata, int n) 
 { 
-    extern __shared__ unsigned int temp[];
+    extern __shared__ float temp[];
     int thid = threadIdx.x;
     int offset = 1; 
     int ai = thid; 
@@ -60,5 +60,5 @@ void prefixsumScan(unsigned int *d_out, unsigned int *d_in, int length) {
     if(length%128 != 0){
         blocks++;
     }
-    prescan<<<blocks, 128, sizeof(unsigned int) * shared_mem>>>(d_out, d_in, ELEMENTS_PER_BLOCK);
+    prescan<<<blocks, 128, sizeof(float) * shared_mem>>>(d_out, d_in, ELEMENTS_PER_BLOCK);
 }
