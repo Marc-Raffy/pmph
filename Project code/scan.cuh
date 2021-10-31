@@ -21,7 +21,7 @@ __global__ void prescan(unsigned int *g_odata, unsigned int *g_idata, int n)
     int bankOffsetA = CONFLICT_FREE_OFFSET(ai);
     int bankOffsetB = CONFLICT_FREE_OFFSET(bi);
     # if __CUDA_ARCH__ >= 200
-    printf("%d%d", bankOffsetA, bankOffsetB);
+    printf("%f", bankOffsetA, bankOffsetB);
     # endif
     temp[ai + bankOffsetA] = g_idata[ai];
     temp[bi + bankOffsetB] = g_idata[bi]; 
@@ -71,5 +71,5 @@ void prefixsumScan(unsigned int *d_out, unsigned int *d_in, int length) {
     if(length%128 != 0){
         blocks++;
     }
-    prescan<<<blocks, 128, sizeof(float) * shared_mem>>>(d_out, d_in, ELEMENTS_PER_BLOCK);
+    prescan<<<1, 4, sizeof(float) * shared_mem>>>(d_out, d_in, ELEMENTS_PER_BLOCK);
 }
