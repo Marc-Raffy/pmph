@@ -21,7 +21,7 @@ __global__ void prescan(unsigned int *g_odata, unsigned int *g_idata, int n)
     int bankOffsetA = CONFLICT_FREE_OFFSET(ai);
     int bankOffsetB = CONFLICT_FREE_OFFSET(bi);
     # if __CUDA_ARCH__ >= 200
-    printf("2\n");
+    printf("%f%f", bankOffsetA, bankOffsetB);
     # endif
     temp[ai + bankOffsetA] = g_idata[ai];
     temp[bi + bankOffsetB] = g_idata[bi]; 
@@ -30,29 +30,16 @@ __global__ void prescan(unsigned int *g_odata, unsigned int *g_idata, int n)
     # endif
     for (int d = n>>1; d > 0; d >>= 1){ 
         __syncthreads();
-        # if __CUDA_ARCH__ >= 200
-        printf("4\n");
-        # endif
         if (thid < d)
         { 
-            # if __CUDA_ARCH__ >= 200
-            printf("5\n");
-            # endif
             int ai = offset*(2*thid+1)-1;
             int bi = offset*(2*thid+2)-1;
             ai += CONFLICT_FREE_OFFSET(ai);
             bi += CONFLICT_FREE_OFFSET(bi);
             temp[bi] += temp[ai];    
-            # if __CUDA_ARCH__ >= 200
-            printf("6\n");
-            # endif
         }    
-        offset *= 2;
-
-    }
-    # if __CUDA_ARCH__ >= 200
-    printf("7\n");
-    # endif
+        offset *= 2; 
+    } 
     if (thid==0) 
     {
         temp[n - 1 + CONFLICT_FREE_OFFSET(n - 1)] = 0;
