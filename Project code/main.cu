@@ -3,7 +3,6 @@
 #include <iomanip>
 #include <ctime>
 #include "kernel.cuh"
-#include "scan.cuh"
 
 void cpu_sort(unsigned int* h_out, unsigned int* h_in, size_t len)
 {
@@ -39,7 +38,6 @@ int main()
 
     start = std::clock();
     radix_sort(d_out, d_in, num_elems);
-    prefixsumScan(d_out, d_in, num_elems);
     double gpu_duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
     
     std::cout << "GPU time: " << gpu_duration << " s" << std::endl;
