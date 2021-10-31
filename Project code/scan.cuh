@@ -57,6 +57,7 @@ __global__ void prescan(unsigned int *g_odata, unsigned int *g_idata, int n) {
 } 
 
 void prefixsumScan(unsigned int *d_out, unsigned int *d_in, int length) {
+    std::cout << "i am a dumbass" << " ";
 	const int blocks = length / ELEMENTS_PER_BLOCK;
     prescan<<<blocks, THREADS_PER_BLOCK>>>(d_out, d_in, ELEMENTS_PER_BLOCK);
 }
