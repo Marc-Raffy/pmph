@@ -17,7 +17,7 @@ int main()
 {
     std::clock_t start;
     
-    unsigned int num_elems = (1 << 14);
+    unsigned int num_elems = (1 << 13);
     unsigned int* h_in = new unsigned int[num_elems];
     unsigned int* h_in_rand = new unsigned int[num_elems];
     unsigned int* h_out_gpu = new unsigned int[num_elems];
