@@ -51,7 +51,6 @@ int main()
             
             match = false;
             index_diff = i;
-            break;
         }
     }
     std::cout << "Match: " << match << std::endl;
