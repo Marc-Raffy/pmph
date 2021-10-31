@@ -77,6 +77,7 @@ __global__ void prescan(unsigned int *g_odata, unsigned int *g_idata, int n)
 void prefixsumScan(unsigned int *d_out, unsigned int *d_in, int length) {
     unsigned int max_bi = BLOCK_SIZE + (length >> 1);
     unsigned int shared_mem = CONFLICT_FREE_OFFSET(max_bi) + max_bi;
+    std::cout << shared_mem << std::endl;
 	unsigned int blocks = length / 128;
     if(length%128 != 0){
         blocks++;
