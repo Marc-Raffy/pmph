@@ -21,6 +21,9 @@ __global__ void prescan(unsigned int *g_odata, unsigned int *g_idata, int n)
     int bankOffsetA = CONFLICT_FREE_OFFSET(ai);
     int bankOffsetB = CONFLICT_FREE_OFFSET(bi);
     temp[ai + bankOffsetA] = g_idata[ai];
+    # if __CUDA_ARCH__ >= 200
+    printf("2\n");
+    # endif
     temp[bi + bankOffsetB] = g_idata[bi]; 
     # if __CUDA_ARCH__ >= 200
     printf("3\n");
