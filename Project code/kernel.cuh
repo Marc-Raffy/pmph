@@ -209,9 +209,9 @@ void radix_sort(unsigned int* const d_out,
 
         // scan global block sum array
         prefixsumScan(d_scan_block_sums, d_block_sums, d_block_sums_len);
-        for(int ii=0; ii < d_block_sums_len; ii++){
+        /*for(int ii=0; ii < d_block_sums_len; ii++){
             std::cout << d_scan_block_sums[ii] << "  ";
-        }
+        }*/
         // scatter/shuffle block-wise sorted array to final positions
         gpu_glbl_shuffle<<<grid_sz, block_sz>>>(d_in, 
                                                     d_out, 
