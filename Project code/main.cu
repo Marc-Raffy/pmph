@@ -46,7 +46,7 @@ int main()
     for (int i = 0; i < num_elems; ++i)
     {
         if (h_out_cpu[i] != h_out_gpu[i])
-        {
+            printf("%d%d", h_out_cpu[i], h_out_gpu[i])
             match = false;
             index_diff = i;
             break;
