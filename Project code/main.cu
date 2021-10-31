@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <iomanip>
 #include <ctime>
-#include "kernel.cu.h"
+#include "kernel.cuh"
 
 void cpu_sort(unsigned int* h_out, unsigned int* h_in, size_t len)
 {

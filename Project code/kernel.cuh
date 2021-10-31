@@ -1,6 +1,6 @@
 #define BLOCK_SIZE 128
 #include "scan.cuh"
-
+#include <iostream>
 //NVIDIA prefix sum scan
 
 
@@ -12,7 +12,7 @@ __global__ void gpu_radix_sort_local(unsigned int* d_out_sorted,
     unsigned int d_in_len,
     unsigned int max_elems_per_block)
 {
-     extern __shared__ unsigned int shmem[];
+    extern __shared__ unsigned int shmem[];
     unsigned int* s_data = shmem;
     unsigned int s_mask_out_len = max_elems_per_block + 1;
     unsigned int* s_mask_out = &s_data[max_elems_per_block];
@@ -209,12 +209,9 @@ void radix_sort(unsigned int* const d_out,
 
         // scan global block sum array
         prefixsumScan(d_scan_block_sums, d_block_sums, d_block_sums_len);
-        unsigned int* h_test = new unsigned int[d_block_sums_len];
-        (cudaMemcpy(h_test, d_scan_block_sums, sizeof(unsigned int) * d_in_len, cudaMemcpyDeviceToHost));
-        for (unsigned int i = 0; i < d_in_len; ++i)
-            std::cout << h_test[i] << " ";
-        std::cout << std::endl;
-        delete[] h_test;
+        for(int ii=0; ii < d_block_sums_len; ii++){
+            std::cout << d_scan_block_sums[ii] << "  ";
+        }
         // scatter/shuffle block-wise sorted array to final positions
         gpu_glbl_shuffle<<<grid_sz, block_sz>>>(d_in, 
                                                     d_out, 
