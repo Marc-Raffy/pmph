@@ -55,6 +55,7 @@ __global__ void prescan(unsigned int *g_odata, unsigned int *g_idata, int n)
     
     # if __CUDA_ARCH__ >= 200
     printf("%f%f", temp[ai + bankOffsetA], temp[bi + bankOffsetB]);
+    printf("marko sucks");
     # endif
 } 
 
