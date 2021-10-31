@@ -34,15 +34,15 @@ int main()
     unsigned int* d_out;
     cudaMalloc(&d_in, sizeof(unsigned int) * num_elems);
     cudaMalloc(&d_out, sizeof(unsigned int) * num_elems);
-    cudaMemcpy(d_in, h_in_rand, sizeof(unsigned int) * num_elems, cudaMemcpyHostToDevice);
 
     start = std::clock();
     radix_sort(d_out, d_in, num_elems);
     double gpu_duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
-    
+    cudaMemcpy(d_in, h_in_rand, sizeof(unsigned int) * num_elems, cudaMemcpyDeviceToHost);
     std::cout << "GPU time: " << gpu_duration << " s" << std::endl;
     bool match = true;
     int index_diff = 0;
+    cudaMemcpy(h_out_gpu, d_out, sizeof(unsigned int) * num_elems, cudaMemcpyHostToDevice);
     for (int i = 0; i < num_elems; ++i)
     {
         std::cout<< h_out_cpu[i] << " -- " << h_out_gpu[i]<< std::endl;
