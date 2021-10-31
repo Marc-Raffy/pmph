@@ -208,7 +208,7 @@ void radix_sort(unsigned int* const d_out,
         unsigned int* h_new1 = new unsigned int[d_block_sums_len];
         cudaMemcpy(h_new1, d_block_sums, sizeof(unsigned int) * d_block_sums_len, cudaMemcpyDeviceToHost);
         for(int ii=0; ii < d_block_sums_len; ii++){
-            //std::cout << h_new1[ii] << "  ";
+            std::cout << h_new1[ii] << "  ";
         }
         std::cout << std::endl;
         
@@ -218,7 +218,7 @@ void radix_sort(unsigned int* const d_out,
         unsigned int* h_new = new unsigned int[d_block_sums_len];
         cudaMemcpy(h_new, d_scan_block_sums, sizeof(unsigned int) * d_block_sums_len, cudaMemcpyDeviceToHost);
         for(int ii=0; ii < d_block_sums_len; ii++){
-            //std::cout << h_new[ii] << "  ";
+            std::cout << h_new[ii] << "  ";
         }
         std::cout << std::endl;
         // scatter/shuffle block-wise sorted array to final positions
