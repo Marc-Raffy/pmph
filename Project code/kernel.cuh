@@ -207,7 +207,7 @@ void radix_sort(unsigned int* const d_out,
         
 
         // scan global block sum array
-        prefixsumScan(d_scan_block_sums, d_block_sums, d_block_sums_len);
+        //prefixsumScan(d_scan_block_sums, d_block_sums, d_block_sums_len);
         unsigned int* h_new = new unsigned int[d_block_sums_len];
         cudaMemcpy(h_new, d_scan_block_sums, sizeof(unsigned int) * d_block_sums_len, cudaMemcpyDeviceToHost);
         for(int ii=0; ii < d_block_sums_len; ii++){
