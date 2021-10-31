@@ -207,20 +207,17 @@ void radix_sort(unsigned int* const d_out,
 
         unsigned int* h_new1 = new unsigned int[d_in_len];
         cudaMemcpy(h_new1, d_in, sizeof(unsigned int) * d_in_len, cudaMemcpyDeviceToHost);
-        for(int ii=0; ii < d_in_len; ii++){
+        /*for(int ii=0; ii < d_in_len; ii++){
             std::cout << h_new1[ii] << "  ";
         }
-        std::cout << std::endl;
+        std::cout << std::endl;*/
         
 
         // scan global block sum array
         prefixsumScan(d_scan_block_sums, d_block_sums, d_block_sums_len);
         unsigned int* h_new = new unsigned int[d_block_sums_len];
         cudaMemcpy(h_new, d_scan_block_sums, sizeof(unsigned int) * d_block_sums_len, cudaMemcpyDeviceToHost);
-        for(int ii=0; ii < d_block_sums_len; ii++){
-            std::cout << h_new[ii] << "  ";
-        }
-        std::cout << std::endl;
+       
         // scatter/shuffle block-wise sorted array to final positions
         gpu_glbl_shuffle<<<grid_sz, block_sz>>>(d_in, 
                                                     d_out, 

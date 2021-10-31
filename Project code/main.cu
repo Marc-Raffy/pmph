@@ -45,9 +45,10 @@ int main()
     int index_diff = 0;
     for (int i = 0; i < num_elems; ++i)
     {
+        std::cout<< h_out_cpu[i] << " -- " << h_out_gpu[i]<< std::endl;
         if (h_out_cpu[i] != h_out_gpu[i])
         {
-            std::cout<< h_out_cpu[i] << " -- " << h_out_gpu[i]<< std::endl;
+            
             match = false;
             index_diff = i;
             break;
