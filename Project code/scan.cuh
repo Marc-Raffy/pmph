@@ -10,6 +10,9 @@
 
 __global__ void prescan(unsigned int *g_odata, unsigned int *g_idata, int n) 
 {
+    #if __CUDA_ARCH__ >= 200
+    printf("1");
+    #endif
     extern __shared__ unsigned int temp[];
     int thid = threadIdx.x;
     int offset = 1; 
@@ -20,7 +23,9 @@ __global__ void prescan(unsigned int *g_odata, unsigned int *g_idata, int n)
     int g_index = BLOCK_SIZE * blockIdx.x + threadIdx.x;
     temp[g_index] = 0;
     __syncthreads();
-
+    #if __CUDA_ARCH__ >= 200
+    printf("2");
+    #endif
     if(g_index < n){
         temp[ai + bankOffsetA] = g_idata[ai];
         if(bi < n){
