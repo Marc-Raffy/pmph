@@ -30,26 +30,33 @@ __global__ void prescan(unsigned int *g_odata, unsigned int *g_idata, int n)
     # endif
     for (int d = n>>1; d > 0; d >>= 1){ 
         __syncthreads();
+        # if __CUDA_ARCH__ >= 200
+        printf("4\n");
+        # endif
         if (thid < d)
         { 
+            # if __CUDA_ARCH__ >= 200
+            printf("5\n");
+            # endif
             int ai = offset*(2*thid+1)-1;
             int bi = offset*(2*thid+2)-1;
             ai += CONFLICT_FREE_OFFSET(ai);
             bi += CONFLICT_FREE_OFFSET(bi);
             temp[bi] += temp[ai];    
+            # if __CUDA_ARCH__ >= 200
+            printf("6\n");
+            # endif
         }    
-        offset *= 2; 
+        offset *= 2;
+
     }
     # if __CUDA_ARCH__ >= 200
-    printf("4\n");
+    printf("7\n");
     # endif
     if (thid==0) 
     {
         temp[n - 1 + CONFLICT_FREE_OFFSET(n - 1)] = 0;
     }
-    # if __CUDA_ARCH__ >= 200
-    printf("5\n");
-    # endif
     for (int d = 1; d < n; d *= 2) {
         offset >>= 1;
         __syncthreads();
@@ -63,14 +70,8 @@ __global__ void prescan(unsigned int *g_odata, unsigned int *g_idata, int n)
             temp[ai] = temp[bi]; 
             temp[bi] += t;       
         } 
-    }
-    # if __CUDA_ARCH__ >= 200
-    printf("6\n");
-    # endif
+    }  
     __syncthreads(); 
-    # if __CUDA_ARCH__ >= 200
-    printf("7\n");
-    # endif
     g_odata[ai] = temp[ai + bankOffsetA];
     g_odata[bi] = temp[bi + bankOffsetB];
     
