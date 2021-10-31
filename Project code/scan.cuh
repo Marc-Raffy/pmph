@@ -26,7 +26,7 @@ __global__ void prescan(unsigned int *g_odata, unsigned int *g_idata, int n)
     #if __CUDA_ARCH__ >= 200
     printf("2");
     #endif
-    if(g_index < n){
+    if(ai < n){
         temp[ai + bankOffsetA] = g_idata[ai];
         if(bi < n){
             temp[bi + bankOffsetB] = g_idata[bi];   
