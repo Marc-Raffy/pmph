@@ -26,7 +26,7 @@ __global__ void prescan(unsigned int *g_odata, unsigned int *g_idata, int n)
     #if __CUDA_ARCH__ >= 200
     printf("2");
     #endif
-    if(ai < n){
+    if(g_index < n){
         temp[ai + bankOffsetA] = g_idata[ai];
         if(bi < n){
             temp[bi + bankOffsetB] = g_idata[bi];   
@@ -75,7 +75,7 @@ __global__ void prescan(unsigned int *g_odata, unsigned int *g_idata, int n)
 } 
 
 void prefixsumScan(unsigned int *d_out, unsigned int *d_in, int length) {
-    unsigned int shared_mem = BLOCK_SIZE + (BLOCK_SIZE >> LOG_NUM_BANKS);
+    unsigned int shared_mem = BLOCK_SIZE + (BLOCK_SIZE);
 	unsigned int blocks = length / 128;
     if(length%128 != 0){
         blocks++;
