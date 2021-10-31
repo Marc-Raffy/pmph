@@ -6,16 +6,18 @@
 int THREADS_PER_BLOCK = 512;
 int ELEMENTS_PER_BLOCK = THREADS_PER_BLOCK * 2;
 
+
+
 __global__ void prescan(unsigned int *g_odata, unsigned int *g_idata, int n) { 
     extern __shared__ float temp[];
     int thid = threadIdx.x;
     int offset = 1; 
-       int ai = thid; 
-       int bi = thid + (n/2); 
-       int bankOffsetA = CONFLICT_FREE_OFFSET(ai);
-       int bankOffsetB = CONFLICT_FREE_OFFSET(bi);
-       temp[ai + bankOffsetA] = g_idata[ai];
-       temp[bi + bankOffsetB] = g_idata[bi]; 
+    int ai = thid; 
+    int bi = thid + (n/2); 
+    int bankOffsetA = CONFLICT_FREE_OFFSET(ai);
+    int bankOffsetB = CONFLICT_FREE_OFFSET(bi);
+    temp[ai + bankOffsetA] = g_idata[ai];
+    temp[bi + bankOffsetB] = g_idata[bi]; 
     for (int d = n>>1; d > 0; d >>= 1){ 
         __syncthreads();
         if (thid < d)
@@ -26,7 +28,7 @@ __global__ void prescan(unsigned int *g_odata, unsigned int *g_idata, int n) {
             bi += CONFLICT_FREE_OFFSET(bi);
             temp[bi] += temp[ai];    
         }    
-    offset *= 2; 
+        offset *= 2; 
     } 
     if (thid==0) 
     {
@@ -48,11 +50,11 @@ __global__ void prescan(unsigned int *g_odata, unsigned int *g_idata, int n) {
     }  
     __syncthreads(); 
     g_odata[ai] = temp[ai + bankOffsetA];
-    g_odata[bi] = temp[bi + bankOffsetB]; 
+    g_odata[bi] = temp[bi + bankOffsetB];
+    printf("I am in the scan");
 } 
 
 void prefixsumScan(unsigned int *d_out, unsigned int *d_in, int length) {
 	const int blocks = length / ELEMENTS_PER_BLOCK;
-
-		prescan<<<blocks, THREADS_PER_BLOCK>>>(d_out, d_in, ELEMENTS_PER_BLOCK);
+    prescan<<<blocks, THREADS_PER_BLOCK>>>(d_out, d_in, ELEMENTS_PER_BLOCK);
 }
