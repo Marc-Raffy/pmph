@@ -10,9 +10,6 @@
 
 __global__ void prescan(unsigned int *g_odata, unsigned int *g_idata, int n) 
 { 
-    # if __CUDA_ARCH__ >= 200
-    printf("I am in the scan");
-    # endif
     extern __shared__ unsigned int temp[];
     int thid = threadIdx.x;
     int offset = 1; 
