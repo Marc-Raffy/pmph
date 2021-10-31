@@ -1,14 +1,12 @@
 #define BLOCK_SIZE 128
 #define NUM_BANKS 16 
 #define LOG_NUM_BANKS 4 
-#define CONFLICT_FREE_OFFSET(n) \
-((n) >> NUM_BANKS + (n) >> (2 * LOG_NUM_BANKS)) 
 #define THREADS_PER_BLOCK 512
 #define ELEMENTS_PER_BLOCK 1024
 
 
 
-__global__ void prescan(unsigned int *g_odata, unsigned int *g_idata, int n) 
+__global__ void prescan() 
 { 
     # if __CUDA_ARCH__ >= 200
     printf("I am in the scan");
@@ -61,5 +59,5 @@ void prefixsumScan(unsigned int *d_out, unsigned int *d_in, int length) {
     std::cout << "prefix sum scan was called";
     unsigned int shared_mem = BLOCK_SIZE + (BLOCK_SIZE >> LOG_NUM_BANKS);
 	const int blocks = length / ELEMENTS_PER_BLOCK;
-    prescan<<<blocks, THREADS_PER_BLOCK, sizeof(float) * shared_mem>>>(d_out, d_in, ELEMENTS_PER_BLOCK);
+    prescan<<<blocks, THREADS_PER_BLOCK, sizeof(float) * shared_mem>>>();
 }
