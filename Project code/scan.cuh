@@ -8,10 +8,11 @@ int ELEMENTS_PER_BLOCK = THREADS_PER_BLOCK * 2;
 
 
 
-__global__ void prescan(unsigned int *g_odata, unsigned int *g_idata, int n) { 
+__global__ void prescan() { 
     # if __CUDA_ARCH__ >= 200
     printf("I am in the scan");
     # endif
+    std::cout<< "scan was done somehow" << "  ";
     /*extern __shared__ float temp[];
     int thid = threadIdx.x;
     int offset = 1; 
@@ -59,6 +60,6 @@ __global__ void prescan(unsigned int *g_odata, unsigned int *g_idata, int n) {
 void prefixsumScan(unsigned int *d_out, unsigned int *d_in, int length) {
     unsigned int shared_mem = BLOCK_SIZE + (BLOCK_SIZE >> LOG_NUM_BANKS);
 	const int blocks = length / ELEMENTS_PER_BLOCK;
-    prescan<<<blocks, THREADS_PER_BLOCK, sizeof(float) * shared_mem>>>(d_out, d_in, ELEMENTS_PER_BLOCK);
-    std::cout<< "scan was done somehow" << "  ";
+    prescan<<<blocks, THREADS_PER_BLOCK, sizeof(float) * shared_mem>>>();
+    
 }
