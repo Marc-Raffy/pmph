@@ -65,7 +65,9 @@ __global__ void prescan(unsigned int *g_odata, unsigned int *g_idata, int n)
     __syncthreads(); 
     g_odata[ai] = temp[ai + bankOffsetA];
     g_odata[bi] = temp[bi + bankOffsetB];
-    
+    #if __CUDA_ARCH__ >= 200
+    printf("3");
+    #endif
     
 } 
 
