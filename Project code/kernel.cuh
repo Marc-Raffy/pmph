@@ -227,10 +227,7 @@ void radix_sort(unsigned int* const d_out,
                                                     max_elems_per_block);
         unsigned int* h_new1 = new unsigned int[d_in_len];
         cudaMemcpy(h_new1, d_out, sizeof(unsigned int) * d_in_len, cudaMemcpyDeviceToHost);
-        for(int ii=0; ii < d_in_len; ii++){
-            std::cout << h_new1[ii] << "  ";
-        }
-        std::cout << std::endl;
+      
     }
     cudaMemcpy(d_out, d_in, sizeof(unsigned int) * d_in_len, cudaMemcpyDeviceToDevice);
 
