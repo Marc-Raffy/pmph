@@ -66,7 +66,7 @@ __global__ void prescan(unsigned int *g_odata, unsigned int *g_idata, int n)
 } 
 
 void prefixsumScan(unsigned int *d_out, unsigned int *d_in, int length) {
-    unsigned int shared_mem = BLOCK_SIZE + (length >> LOG_NUM_BANKS);
+    unsigned int shared_mem = BLOCK_SIZE + (length/2);
 	unsigned int blocks = length / 128;
     if(length%128 != 0){
         blocks++;
