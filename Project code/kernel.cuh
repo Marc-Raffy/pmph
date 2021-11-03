@@ -2,14 +2,6 @@
 #include <cub/cub.cuh>
 #include <iostream>
 //NVIDIA prefix sum scan
-struct CustomMin
-{
-    template <typename T>
-    CUB_RUNTIME_FUNCTION __forceinline__
-    T operator()(const T &a, const T &b) const {
-        return (b < a) ? b : a;
-    }
-};
 
 __global__ void gpu_radix_sort_local(unsigned int* d_out_sorted,
     unsigned int* d_prefix_sums,
@@ -211,12 +203,14 @@ void radix_sort(unsigned int* const d_out,
                                                                 d_in, 
                                                                 d_in_len, 
                                                                 max_elems_per_block);
-
-        
-        /*for(int ii=0; ii < d_in_len; ii++){
-            std::cout << h_new1[ii] << "  ";
-        }
-        std::cout << std::endl;*/
+        struct CustomMin
+        {
+            template <typename T>
+            CUB_RUNTIME_FUNCTION __forceinline__
+            T operator()(const T &a, const T &b) const {
+                return (b < a) ? b : a;
+            }
+        };
         void     *d_temp_storage = NULL;
         size_t   temp_storage_bytes = 0;
         CustomMin    min_op;
