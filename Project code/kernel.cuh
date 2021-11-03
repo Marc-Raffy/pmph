@@ -9,7 +9,7 @@ struct CustomMin
     T operator()(const T &a, const T &b) const {
         return (b < a) ? b : a;
     }
-}
+};
 
 __global__ void gpu_radix_sort_local(unsigned int* d_out_sorted,
     unsigned int* d_prefix_sums,
