@@ -1,4 +1,4 @@
-#define BLOCK_SIZE 128
+#define BLOCK_SIZE 256
 #include <cub/cub.cuh>
 #include <iostream>
 //NVIDIA prefix sum scan
