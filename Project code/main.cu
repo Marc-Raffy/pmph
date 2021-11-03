@@ -46,7 +46,6 @@ int main()
     cudaMemcpy(h_out_gpu, d_out, sizeof(unsigned int) * num_elems, cudaMemcpyDeviceToHost);
     for (int i = 0; i < num_elems; ++i)
     {
-        std::cout<< h_out_cpu[i] << " -- " << h_out_gpu[i]<< std::endl;
         if (h_out_cpu[i] != h_out_gpu[i])
         {
             
