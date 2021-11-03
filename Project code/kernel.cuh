@@ -214,7 +214,7 @@ void radix_sort(unsigned int* const d_out,
         void     *d_temp_storage = NULL;
         size_t   temp_storage_bytes = 0;
         CustomMin    min_op;
-        cub::DeviceScan::ExclusiveScan(d_temp_storage, temp_storage_bytes, d_block_sums, d_scan_block_sums, min_op, 0, d_block_sums_len);
+        cub::DeviceScan::ExclusiveScan(d_temp_storage, temp_storage_bytes, d_block_sums, d_scan_block_sums, min_op, 0, 12);
 
         // scan global block sum array
         //prefixsumScan(d_scan_block_sums, d_block_sums, d_block_sums_len);
