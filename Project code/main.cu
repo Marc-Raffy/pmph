@@ -47,15 +47,12 @@ int main()
     
     std::cout << "GPU time: " << gpu_duration << " s" << std::endl;
     bool match = true;
-    int index_diff = 0;
     cudaMemcpy(h_out_gpu, d_out, sizeof(unsigned int) * num_elems, cudaMemcpyDeviceToHost);
     for (int i = 0; i < num_elems; ++i)
     {
         if (h_out_cpu[i] != h_out_gpu[i])
         {
-            
             match = false;
-            index_diff = i;
         }
     }
     std::cout << "Match: " << match << std::endl;
