@@ -212,12 +212,13 @@ void radix_sort(unsigned int* const d_out,
         void     *d_temp_storage = NULL;
         size_t   temp_storage_bytes = 0;
         cub::DeviceScan::ExclusiveSum(d_temp_storage, temp_storage_bytes, d_block_sums, d_scan_block_sums, d_block_sums_len);
+        cudaMalloc(&d_temp_storage, temp_storage_bytes);
+        cub::DeviceScan::ExclusiveSum(d_temp_storage, temp_storage_bytes, d_block_sums, d_scan_block_sums, d_block_sums_len);
 
         // scan global block sum array
         //prefixsumScan(d_scan_block_sums, d_block_sums, d_block_sums_len);
         unsigned int* h_new = new unsigned int[d_block_sums_len];
         cudaMemcpy(h_new, d_scan_block_sums, sizeof(unsigned int) * d_block_sums_len, cudaMemcpyDeviceToHost);
-        std::cout << temp_storage_bytes << std::endl;
        
         // scatter/shuffle block-wise sorted array to final positions
         gpu_glbl_shuffle<<<grid_sz, block_sz>>>(d_in, 
