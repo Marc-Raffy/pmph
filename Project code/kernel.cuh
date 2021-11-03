@@ -203,18 +203,9 @@ void radix_sort(unsigned int* const d_out,
                                                                 d_in, 
                                                                 d_in_len, 
                                                                 max_elems_per_block);
-        struct CustomMin
-        {
-            template <typename T>
-            CUB_RUNTIME_FUNCTION __forceinline__
-            T operator()(const T &a, const T &b) const {
-                return (b < a) ? b : a;
-            }
-        };
         void     *d_temp_storage = NULL;
         size_t   temp_storage_bytes = 0;
-        CustomMin    min_op;
-        cub::DeviceScan::ExclusiveScan(d_temp_storage, temp_storage_bytes, d_block_sums, d_scan_block_sums, min_op, 0, 12);
+        cub::DeviceScan::ExclusiveSum(d_temp_storage, temp_storage_bytes, d_block_sums, d_scan_block_sums, d_block_sums_len);
 
         // scan global block sum array
         //prefixsumScan(d_scan_block_sums, d_block_sums, d_block_sums_len);
