@@ -1,8 +1,15 @@
 #define BLOCK_SIZE 128
-#include "scan.cuh"
+#include <cub/cub.cuh>
 #include <iostream>
 //NVIDIA prefix sum scan
-
+struct CustomMin
+{
+    template <typename T>
+    CUB_RUNTIME_FUNCTION __forceinline__
+    T operator()(const T &a, const T &b) const {
+        return (b < a) ? b : a;
+    }
+}
 
 __global__ void gpu_radix_sort_local(unsigned int* d_out_sorted,
     unsigned int* d_prefix_sums,
@@ -210,10 +217,13 @@ void radix_sort(unsigned int* const d_out,
             std::cout << h_new1[ii] << "  ";
         }
         std::cout << std::endl;*/
-        
+        void     *d_temp_storage = NULL;
+        size_t   temp_storage_bytes = 0;
+        CustomMin    min_op;
+        cub::DeviceScan::ExclusiveScan(d_temp_storage, temp_storage_bytes, d_block_sums, d_scan_block_sums, min_op, 0, d_block_sums_len);
 
         // scan global block sum array
-        prefixsumScan(d_scan_block_sums, d_block_sums, d_block_sums_len);
+        //prefixsumScan(d_scan_block_sums, d_block_sums, d_block_sums_len);
         unsigned int* h_new = new unsigned int[d_block_sums_len];
         cudaMemcpy(h_new, d_scan_block_sums, sizeof(unsigned int) * d_block_sums_len, cudaMemcpyDeviceToHost);
        
