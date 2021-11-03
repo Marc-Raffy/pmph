@@ -28,7 +28,12 @@ int main()
         h_in_rand[j] = rand() % num_elems;
     }
 
-    cpu_sort(h_out_cpu, h_in_rand, num_elems);
+    start = std::clock();
+    cpu_sort(h_out_cpu, h_in_rand, num_elems);  
+    double cpu_duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
+    std::cout << "CPU time: " << cpu_duration << " s" << std::endl;
+
+    
 
     unsigned int* d_in;
     unsigned int* d_out;
