@@ -178,7 +178,7 @@ void radix_sort(unsigned int* const d_out,
     cudaMemset(d_prefix_sums, 0, sizeof(unsigned int) * d_prefix_sums_len);
 
     unsigned int* d_block_sums;
-    unsigned int d_block_sums_len = 4 * grid_sz; // 4-way split
+    unsigned int d_block_sums_len = 16 * grid_sz; // 4-way split
     cudaMalloc(&d_block_sums, sizeof(unsigned int) * d_block_sums_len);
     cudaMemset(d_block_sums, 0, sizeof(unsigned int) * d_block_sums_len);
 
@@ -192,7 +192,7 @@ void radix_sort(unsigned int* const d_out,
     unsigned int mask_len = max_elems_per_block + 1;
     unsigned int s_merged_scan_mask_len = max_elems_per_block;
     unsigned int mask_sums_len = 16; // 4-way split
-    unsigned int s_scan_mask_sums_len = 4;
+    unsigned int s_scan_mask_sums_len = 16;
     unsigned int shmem_sz = (s_data_len 
                             + mask_len
                             + s_merged_scan_mask_len
