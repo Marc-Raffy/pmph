@@ -1,0 +1,12 @@
+unsigned int t_prefix_sum = s_merged_scan_mask[thIdx];
+        unsigned int new_pos = t_prefix_sum + histogram[radix];
+        
+        __syncthreads();
+
+        // Shuffle the block's input elements to actually sort them
+        // Do this step for greater global memory transfer coalescing
+        //  in next step
+        s_data[new_pos] = t_data;
+        s_merged_scan_mask[new_pos] = t_prefix_sum;
+        
+        __syncthreads();
