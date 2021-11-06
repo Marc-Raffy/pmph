@@ -78,7 +78,7 @@ __global__ void gpu_radix_sort_local(unsigned int* d_out_sorted,
 
         if (thIdx == 0)
         {
-            //Inclusive to exclusive scan
+            // Zero out first element to produce the same effect as exclusive scan
             mask[0] = 0;
             unsigned int total_sum = mask[mask_len - 1];
             mask_sums[i] = total_sum;
@@ -105,17 +105,24 @@ __global__ void gpu_radix_sort_local(unsigned int* d_out_sorted,
 
     if (cpy_idx < d_in_len)
     {
-        //Get new indices
-        unsigned int new_ind = s_merged_scan_mask[thIdx] + histogram[radix];
-        __syncthreads();
-        //Sort data in shared array for both input data and mask (merged and scanned version)
-        s_data[new_ind] = t_data;
-        s_merged_scan_mask[new_ind] = s_merged_scan_mask[thIdx];
-        __syncthreads();
-        //Write to global memory
-        d_out_sorted[cpy_idx] = s_data[thIdx];
-        d_prefix_sums[cpy_idx] = s_merged_scan_mask[thIdx];
+        // Sorted indexes within block
+        unsigned int t_prefix_sum = s_merged_scan_mask[thIdx];
+        unsigned int new_pos = t_prefix_sum + histogram[radix];
         
+        __syncthreads();
+
+        // Shuffle the block's input elements to actually sort them
+        // Do this step for greater global memory transfer coalescing
+        //  in next step
+        s_data[new_pos] = t_data;
+        s_merged_scan_mask[new_pos] = t_prefix_sum;
+        
+        __syncthreads();
+
+        // Copy block - wise prefix sum results to global memory
+        // Copy block-wise sort results to global 
+        d_prefix_sums[cpy_idx] = s_merged_scan_mask[thIdx];
+        d_out_sorted[cpy_idx] = s_data[thIdx];
     }
 }
 
@@ -127,6 +134,12 @@ __global__ void gpu_glbl_shuffle(unsigned int* d_out,
     unsigned int d_in_len,
     unsigned int max_elems_per_block)
 {
+    // get d = digit
+    // get n = blockIdx
+    // get m = local prefix sum array value
+    // calculate global position = P_d[n] + m
+    // copy input element to final position in d_out
+
     unsigned int thid = threadIdx.x;
     unsigned int cpy_idx = max_elems_per_block * blockIdx.x + thid;
 
