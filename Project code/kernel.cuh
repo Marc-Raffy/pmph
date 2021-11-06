@@ -119,10 +119,10 @@ __global__ void radix_sort_block(unsigned int* d_out_sorted,
     }
 }
 
-__global__ void block_shuffle(unsigned int* d_out,
+__global__ void gpu_glbl_shuffle(unsigned int* d_out,
     unsigned int* d_in,
     unsigned int* d_scan_block_sums,
-    unsigned int* prefix_sums,
+    unsigned int* d_prefix_sums,
     unsigned int input_shift_width,
     unsigned int d_in_len,
     unsigned int block_size=BLOCK_SIZE)
@@ -134,7 +134,7 @@ __global__ void block_shuffle(unsigned int* d_out,
     {
         unsigned int t_data = d_in[cpy_idx];
         unsigned int t_2bit_extract = (t_data >> input_shift_width) & 15;
-        unsigned int t_prefix_sum = prefix_sums[cpy_idx];
+        unsigned int t_prefix_sum = d_prefix_sums[cpy_idx];
         unsigned int data_glbl_pos = d_scan_block_sums[t_2bit_extract * gridDim.x + blockIdx.x]
             + t_prefix_sum;
         __syncthreads();
@@ -147,26 +147,29 @@ void radix_sort(unsigned int* const d_out,
     unsigned int d_in_len)
 {
     unsigned int grid_size = d_in_len / BLOCK_SIZE;
+    // Take advantage of the fact that integer division drops the decimals
+    if (d_in_len % max_elems_per_block != 0)
+        grid_sz += 1;
 
-    unsigned int* prefix_sums;
-    unsigned int prefix_sums_len = d_in_len;
-    cudaMalloc(&prefix_sums, sizeof(unsigned int) * prefix_sums_len);
-    cudaMemset(prefix_sums, 0, sizeof(unsigned int) * prefix_sums_len);
+    unsigned int* d_prefix_sums;
+    unsigned int d_prefix_sums_len = d_in_len;
+    cudaMalloc(&d_prefix_sums, sizeof(unsigned int) * d_prefix_sums_len);
+    cudaMemset(d_prefix_sums, 0, sizeof(unsigned int) * d_prefix_sums_len);
 
-    unsigned int* block_sums;
-    unsigned int block_sums_len = 16 * grid_size; // 4-way split
-    cudaMalloc(&block_sums, sizeof(unsigned int) * block_sums_len);
-    cudaMemset(block_sums, 0, sizeof(unsigned int) * block_sums_len);
+    unsigned int* d_block_sums;
+    unsigned int d_block_sums_len = 16 * grid_sz; // 4-way split
+    cudaMalloc(&d_block_sums, sizeof(unsigned int) * d_block_sums_len);
+    cudaMemset(d_block_sums, 0, sizeof(unsigned int) * d_block_sums_len);
 
     unsigned int* d_scan_block_sums;
-    cudaMalloc(&d_scan_block_sums, sizeof(unsigned int) * block_sums_len);
-    cudaMemset(d_scan_block_sums, 0, sizeof(unsigned int) * block_sums_len);
+    cudaMalloc(&d_scan_block_sums, sizeof(unsigned int) * d_block_sums_len);
+    cudaMemset(d_scan_block_sums, 0, sizeof(unsigned int) * d_block_sums_len);
 
     // shared memory consists of 3 arrays the size of the block-wise input
     //  and 2 arrays the size of n in the current n-way split (4)
-    unsigned int s_data_len = BLOCK_SIZE;
-    unsigned int mask_len = BLOCK_SIZE + 1;
-    unsigned int s_merged_scan_mask_len = BLOCK_SIZE;
+    unsigned int s_data_len = max_elems_per_block;
+    unsigned int mask_len = max_elems_per_block + 1;
+    unsigned int s_merged_scan_mask_len = max_elems_per_block;
     unsigned int mask_sums_len = 16; // 4-way split
     unsigned int histogram_len = 16;
     unsigned int shmem_sz = (s_data_len 
@@ -181,28 +184,29 @@ void radix_sort(unsigned int* const d_out,
     //  block-wise radix sort (write blocks back to global memory)
     for (unsigned int shift_width = 0; shift_width <= 28; shift_width += 4)
     {
-        radix_sort_block<<<grid_size, BLOCK_SIZE, shmem_sz>>>(d_out, 
-                                                                prefix_sums, 
-                                                                block_sums, 
+        radix_sort_block<<<grid_sz, BLOCK_SIZE, shmem_sz>>>(d_out, 
+                                                                d_prefix_sums, 
+                                                                d_block_sums, 
                                                                 shift_width, 
                                                                 d_in, 
                                                                 d_in_len);
-
-        //Perform a global exclusive scan on block sum                                 
+                                                                
         void     *d_temp_storage = NULL;
         size_t   temp_storage_bytes = 0;
-        cub::DeviceScan::ExclusiveSum(d_temp_storage, temp_storage_bytes, block_sums, d_scan_block_sums, block_sums_len);
+        cub::DeviceScan::ExclusiveSum(d_temp_storage, temp_storage_bytes, d_block_sums, d_scan_block_sums, d_block_sums_len);
         cudaMalloc(&d_temp_storage, temp_storage_bytes);
-        cub::DeviceScan::ExclusiveSum(d_temp_storage, temp_storage_bytes, block_sums, d_scan_block_sums, block_sums_len);
+        cub::DeviceScan::ExclusiveSum(d_temp_storage, temp_storage_bytes, d_block_sums, d_scan_block_sums, d_block_sums_len);
 
-        unsigned int* h_new = new unsigned int[block_sums_len];
-        cudaMemcpy(h_new, d_scan_block_sums, sizeof(unsigned int) * block_sums_len, cudaMemcpyDeviceToHost);
+        // scan global block sum array
+        //prefixsumScan(d_scan_block_sums, d_block_sums, d_block_sums_len);
+        unsigned int* h_new = new unsigned int[d_block_sums_len];
+        cudaMemcpy(h_new, d_scan_block_sums, sizeof(unsigned int) * d_block_sums_len, cudaMemcpyDeviceToHost);
        
         // scatter/shuffle block-wise sorted array to final positions
-        block_shuffle<<<grid_size, BLOCK_SIZE>>>(d_in, 
+        gpu_glbl_shuffle<<<grid_sz, BLOCK_SIZE>>>(d_in, 
                                                     d_out, 
                                                     d_scan_block_sums, 
-                                                    prefix_sums, 
+                                                    d_prefix_sums, 
                                                     shift_width, 
                                                     d_in_len);
         unsigned int* h_new1 = new unsigned int[d_in_len];
@@ -210,4 +214,8 @@ void radix_sort(unsigned int* const d_out,
       
     }
     cudaMemcpy(d_out, d_in, sizeof(unsigned int) * d_in_len, cudaMemcpyDeviceToDevice);
+
+    cudaFree(d_scan_block_sums);
+    cudaFree(d_block_sums);
+    cudaFree(d_prefix_sums);
 }
