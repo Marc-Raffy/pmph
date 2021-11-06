@@ -145,8 +145,13 @@ void radix_sort(unsigned int* d_out,
 {
     unsigned int grid_size = d_in_len / BLOCK_SIZE;
 
+    unsigned int* prefix_sums;
+    unsigned int prefix_sums_len = d_in_len;
+    cudaMalloc(&prefix_sums, sizeof(unsigned int) * prefix_sums_len);
+    cudaMemset(prefix_sums, 0, sizeof(unsigned int) * prefix_sums_len);
+
     unsigned int* block_sums;
-    unsigned int block_sums_len = 16 * grid_size;
+    unsigned int block_sums_len = 16 * grid_size; // 4-way split
     cudaMalloc(&block_sums, sizeof(unsigned int) * block_sums_len);
     cudaMemset(block_sums, 0, sizeof(unsigned int) * block_sums_len);
 
@@ -154,15 +159,17 @@ void radix_sort(unsigned int* d_out,
     cudaMalloc(&d_scan_block_sums, sizeof(unsigned int) * block_sums_len);
     cudaMemset(d_scan_block_sums, 0, sizeof(unsigned int) * block_sums_len);
 
-    unsigned int* prefix_sums;
-    unsigned int prefix_sums_len = d_in_len;
-    cudaMalloc(&prefix_sums, sizeof(unsigned int) * prefix_sums_len);
-    cudaMemset(prefix_sums, 0, sizeof(unsigned int) * prefix_sums_len);
-
     unsigned int shared_mem_len = (3*BLOCK_SIZE+1 + 16*2) * sizeof(unsigned int);
+    // for every 2 bits from LSB to MSB:
+    //  block-wise radix sort (write blocks back to global memory)
     for (unsigned int shift_width = 0; shift_width <= 28; shift_width += 4)
     {
-        radix_sort_block<<<grid_size, BLOCK_SIZE, shared_mem_len>>>(d_out,  prefix_sums, block_sums, shift_width, d_in, d_in_len);
+        radix_sort_block<<<grid_size, BLOCK_SIZE, shared_mem_len>>>(d_out, 
+                                                                prefix_sums, 
+                                                                block_sums, 
+                                                                shift_width, 
+                                                                d_in, 
+                                                                d_in_len);
 
         //Perform a global exclusive scan on block sum                                 
         void     *d_temp_storage = NULL;
@@ -170,9 +177,20 @@ void radix_sort(unsigned int* d_out,
         cub::DeviceScan::ExclusiveSum(d_temp_storage, temp_storage_bytes, block_sums, d_scan_block_sums, block_sums_len);
         cudaMalloc(&d_temp_storage, temp_storage_bytes);
         cub::DeviceScan::ExclusiveSum(d_temp_storage, temp_storage_bytes, block_sums, d_scan_block_sums, block_sums_len);
+
+        unsigned int* h_new = new unsigned int[block_sums_len];
+        cudaMemcpy(h_new, d_scan_block_sums, sizeof(unsigned int) * block_sums_len, cudaMemcpyDeviceToHost);
        
         // scatter/shuffle block-wise sorted array to final positions
-        block_shuffle<<<grid_size, BLOCK_SIZE>>>(d_in, d_out, d_scan_block_sums, prefix_sums, shift_width, d_in_len);
+        block_shuffle<<<grid_size, BLOCK_SIZE>>>(d_in, 
+                                                    d_out, 
+                                                    d_scan_block_sums, 
+                                                    prefix_sums, 
+                                                    shift_width, 
+                                                    d_in_len);
+        unsigned int* h_new1 = new unsigned int[d_in_len];
+        cudaMemcpy(h_new1, d_out, sizeof(unsigned int) * d_in_len, cudaMemcpyDeviceToHost);
+      
     }
     cudaMemcpy(d_out, d_in, sizeof(unsigned int) * d_in_len, cudaMemcpyDeviceToDevice);
 }
