@@ -11,13 +11,18 @@ __global__ void gpu_radix_sort_local(unsigned int* d_out_sorted,
     unsigned int d_in_len,
     unsigned int max_elems_per_block)
 {
+    //shared input array for a block
     extern __shared__ unsigned int shmem[];
     unsigned int* s_data = shmem;
-    unsigned int s_mask_out_len = max_elems_per_block + 1;
-    unsigned int* s_mask_out = &s_data[max_elems_per_block];
-    unsigned int* s_merged_scan_mask_out = &s_mask_out[s_mask_out_len];
-    unsigned int* s_mask_out_sums = &s_merged_scan_mask_out[max_elems_per_block];
-    unsigned int* s_scan_mask_out_sums = &s_mask_out_sums[4];
+    //shared mask array
+    unsigned int* mask = &s_data[max_elems_per_block];
+    unsigned int mask_len = max_elems_per_block + 1;
+    //shared array for scan of mask on all 4 different radix
+    unsigned int* s_merged_scan_mask = &mask[mask_len];
+    //shared array for the sum of merged scan mask
+    unsigned int* mask_sums = &s_merged_scan_mask[max_elems_per_block];
+    //shared array for the scan of the mask sum
+    unsigned int* s_scan_mask_sums = &mask_sums[4];
     unsigned int thIdx = threadIdx.x;
     //cpy_idx is the global index of the current thread
     unsigned int cpy_idx = BLOCK_SIZE * blockIdx.x + thIdx;
@@ -28,60 +33,65 @@ __global__ void gpu_radix_sort_local(unsigned int* d_out_sorted,
         s_data[thIdx] = 0;
     //Synchronize threads so that shared data is properly innitialized
     __syncthreads();
+    //Digit from input of the current thread
     unsigned int t_data = s_data[thIdx];
-    unsigned int radix = (s_data[thIdx] >> input_shift_width) & 3;
-    //s_mask_out = &s_data[128];
+    //Extracting radix of input depending on where we are in the loop
+    unsigned int radix = (t_data >> input_shift_width) & 3;
+    //mask = &s_data[128];
     for (unsigned int i = 0; i < 4; ++i)
     {
-        //Need explanations 
-        // Zero out s_mask_out
-        s_mask_out[thIdx] = 0;
+        // Zero out mask
+        mask[thIdx] = 0;
+        //To initialize last element of the mask
         if (thIdx == 0)
-            s_mask_out[s_mask_out_len - 1] = 0;
+            mask[mask_len - 1] = 0;
         __syncthreads();
 
         // build bit mask output
         bool val_equals_i = false;
+        //Set mask values depending on radix value
         if (cpy_idx < d_in_len)
         {
             val_equals_i = radix == i;
-            s_mask_out[thIdx] = val_equals_i;
+            mask[thIdx] = val_equals_i;
         }
         __syncthreads();
+        
         //Hillis & Steele Parallel Scan Algorithm
+        //Scan the mask array 
         unsigned int sum = 0;
         unsigned int max_steps = (unsigned int) log2f(max_elems_per_block);
         for (unsigned int d = 0; d < max_steps; d++) {
             if (thIdx < 1 << d) {
-                sum = s_mask_out[thIdx];
+                sum = mask[thIdx];
             }
             else {
-                sum = s_mask_out[thIdx] + s_mask_out[thIdx - (1 << d)];
+                sum = mask[thIdx] + mask[thIdx - (1 << d)];
                 
             }
             __syncthreads();
-            s_mask_out[thIdx] = sum;
+            mask[thIdx] = sum;
             __syncthreads();
         }
         //Turn inclusive to exclusive scan
-        unsigned int cpy_val = 0;
-        cpy_val = s_mask_out[thIdx];
+        unsigned int cpy_val;
+        cpy_val = mask[thIdx];
         __syncthreads();
-        s_mask_out[thIdx + 1] = cpy_val;
+        mask[thIdx + 1] = cpy_val;
         __syncthreads();
 
         if (thIdx == 0)
         {
             // Zero out first element to produce the same effect as exclusive scan
-            s_mask_out[0] = 0;
-            unsigned int total_sum = s_mask_out[s_mask_out_len - 1];
-            s_mask_out_sums[i] = total_sum;
+            mask[0] = 0;
+            unsigned int total_sum = mask[mask_len - 1];
+            mask_sums[i] = total_sum;
             d_block_sums[i * gridDim.x + blockIdx.x] = total_sum;
         }
         __syncthreads();
         if (val_equals_i && (cpy_idx < d_in_len))
         {
-            s_merged_scan_mask_out[thIdx] = s_mask_out[thIdx];
+            s_merged_scan_mask[thIdx] = mask[thIdx];
         }
         __syncthreads();
     }  
@@ -93,8 +103,8 @@ __global__ void gpu_radix_sort_local(unsigned int* d_out_sorted,
         unsigned int run_sum = 0;
         for (unsigned int i = 0; i < 4; ++i)
         {
-            s_scan_mask_out_sums[i] = run_sum;
-            run_sum += s_mask_out_sums[i];
+            s_scan_mask_sums[i] = run_sum;
+            run_sum += mask_sums[i];
         }
     }
 
@@ -103,8 +113,8 @@ __global__ void gpu_radix_sort_local(unsigned int* d_out_sorted,
     if (cpy_idx < d_in_len)
     {
         // Calculate the new indices of the input elements for sorting
-        unsigned int t_prefix_sum = s_merged_scan_mask_out[thIdx];
-        unsigned int new_pos = t_prefix_sum + s_scan_mask_out_sums[radix];
+        unsigned int t_prefix_sum = s_merged_scan_mask[thIdx];
+        unsigned int new_pos = t_prefix_sum + s_scan_mask_sums[radix];
         
         __syncthreads();
 
@@ -112,13 +122,13 @@ __global__ void gpu_radix_sort_local(unsigned int* d_out_sorted,
         // Do this step for greater global memory transfer coalescing
         //  in next step
         s_data[new_pos] = t_data;
-        s_merged_scan_mask_out[new_pos] = t_prefix_sum;
+        s_merged_scan_mask[new_pos] = t_prefix_sum;
         
         __syncthreads();
 
         // Copy block - wise prefix sum results to global memory
         // Copy block-wise sort results to global 
-        d_prefix_sums[cpy_idx] = s_merged_scan_mask_out[thIdx];
+        d_prefix_sums[cpy_idx] = s_merged_scan_mask[thIdx];
         d_out_sorted[cpy_idx] = s_data[thIdx];
     }
 }
@@ -156,8 +166,7 @@ void radix_sort(unsigned int* const d_out,
     unsigned int* const d_in,
     unsigned int d_in_len)
 {
-    unsigned int block_sz = BLOCK_SIZE;
-    unsigned int max_elems_per_block = block_sz;
+    unsigned int max_elems_per_block = BLOCK_SIZE;
     unsigned int grid_sz = d_in_len / max_elems_per_block;
     // Take advantage of the fact that integer division drops the decimals
     if (d_in_len % max_elems_per_block != 0)
@@ -180,15 +189,15 @@ void radix_sort(unsigned int* const d_out,
     // shared memory consists of 3 arrays the size of the block-wise input
     //  and 2 arrays the size of n in the current n-way split (4)
     unsigned int s_data_len = max_elems_per_block;
-    unsigned int s_mask_out_len = max_elems_per_block + 1;
-    unsigned int s_merged_scan_mask_out_len = max_elems_per_block;
-    unsigned int s_mask_out_sums_len = 4; // 4-way split
-    unsigned int s_scan_mask_out_sums_len = 4;
+    unsigned int mask_len = max_elems_per_block + 1;
+    unsigned int s_merged_scan_mask_len = max_elems_per_block;
+    unsigned int mask_sums_len = 4; // 4-way split
+    unsigned int s_scan_mask_sums_len = 4;
     unsigned int shmem_sz = (s_data_len 
-                            + s_mask_out_len
-                            + s_merged_scan_mask_out_len
-                            + s_mask_out_sums_len
-                            + s_scan_mask_out_sums_len)
+                            + mask_len
+                            + s_merged_scan_mask_len
+                            + mask_sums_len
+                            + s_scan_mask_sums_len)
                             * sizeof(unsigned int);
 
 
@@ -204,11 +213,7 @@ void radix_sort(unsigned int* const d_out,
                                                                 d_in_len, 
                                                                 max_elems_per_block);
 
-        
-        /*for(int ii=0; ii < d_in_len; ii++){
-            std::cout << h_new1[ii] << "  ";
-        }
-        std::cout << std::endl;*/
+
         void     *d_temp_storage = NULL;
         size_t   temp_storage_bytes = 0;
         cub::DeviceScan::ExclusiveSum(d_temp_storage, temp_storage_bytes, d_block_sums, d_scan_block_sums, d_block_sums_len);
