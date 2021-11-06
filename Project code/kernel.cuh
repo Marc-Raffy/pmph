@@ -122,7 +122,7 @@ __global__ void radix_sort_block(unsigned int* d_out_sorted,
 
 __global__ void block_shuffle(unsigned int* d_out,
     unsigned int* d_in,
-    unsigned int* d_scan_block_sums,
+    unsigned int* scan_block_sums,
     unsigned int* prefix_sums,
     unsigned int shift_width,
     unsigned int d_in_len)
@@ -134,7 +134,7 @@ __global__ void block_shuffle(unsigned int* d_out,
     {
         unsigned int t_data = d_in[cpy_idx];
         unsigned int global_radix = ((t_data >> shift_width) & 15) * gridDim.x + blockIdx.x;
-        unsigned int data_glbl_pos = d_scan_block_sums[global_radix]+ prefix_sums[cpy_idx];
+        unsigned int data_glbl_pos = scan_block_sums[global_radix]+ prefix_sums[cpy_idx];
         __syncthreads();
         d_out[data_glbl_pos] = t_data;
     }
@@ -152,9 +152,9 @@ void radix_sort(unsigned int* d_out,
     cudaMalloc(&block_sums, sizeof(unsigned int) * block_sums_len);
     cudaMemset(block_sums, 0, sizeof(unsigned int) * block_sums_len);
 
-    unsigned int* d_scan_block_sums;
-    cudaMalloc(&d_scan_block_sums, sizeof(unsigned int) * block_sums_len);
-    cudaMemset(d_scan_block_sums, 0, sizeof(unsigned int) * block_sums_len);
+    unsigned int* scan_block_sums;
+    cudaMalloc(&scan_block_sums, sizeof(unsigned int) * block_sums_len);
+    cudaMemset(scan_block_sums, 0, sizeof(unsigned int) * block_sums_len);
 
     unsigned int* prefix_sums;
     unsigned int prefix_sums_len = d_in_len;
@@ -169,12 +169,12 @@ void radix_sort(unsigned int* d_out,
         //Perform a global exclusive scan on block sum                                 
         void     *d_temp_storage = NULL;
         size_t   temp_storage_bytes = 0;
-        cub::DeviceScan::ExclusiveSum(d_temp_storage, temp_storage_bytes, block_sums, d_scan_block_sums, block_sums_len);
+        cub::DeviceScan::ExclusiveSum(d_temp_storage, temp_storage_bytes, block_sums, scan_block_sums, block_sums_len);
         cudaMalloc(&d_temp_storage, temp_storage_bytes);
-        cub::DeviceScan::ExclusiveSum(d_temp_storage, temp_storage_bytes, block_sums, d_scan_block_sums, block_sums_len);
+        cub::DeviceScan::ExclusiveSum(d_temp_storage, temp_storage_bytes, block_sums, scan_block_sums, block_sums_len);
        
         // scatter/shuffle block-wise sorted array to final positions
-        block_shuffle<<<grid_size, BLOCK_SIZE>>>(d_in, d_out, d_scan_block_sums, prefix_sums, shift_width, d_in_len);
+        block_shuffle<<<grid_size, BLOCK_SIZE>>>(d_in, d_out, scan_block_sums, prefix_sums, shift_width, d_in_len);
     }
     cudaMemcpy(d_out, d_in, sizeof(unsigned int) * d_in_len, cudaMemcpyDeviceToDevice);
 }
