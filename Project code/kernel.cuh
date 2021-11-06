@@ -115,7 +115,7 @@ __global__ void radix_sort_block(unsigned int* d_out_sorted,
         __syncthreads();
         //Write to global memory
         d_out_sorted[cpy_idx] = s_data[thIdx];
-        block_prefix_sums[cpy_idx] = t_prefix_sum;
+        block_prefix_sums[cpy_idx] = s_merged_scan_mask[thIdx];
         
     }
 }
