@@ -3,12 +3,12 @@
 #include <iostream>
 
 __global__ void gpu_radix_sort_local(unsigned int* d_out_sorted,
-    unsigned int* block_prefix_sums,
-    unsigned int* total_sum_block,
+    unsigned int* d_prefix_sums,
+    unsigned int* d_block_sums,
     unsigned int input_shift_width,
     unsigned int* d_in,
     unsigned int d_in_len,
-    unsigned int max_elems_per_block=BLOCK_SIZE)
+    unsigned int max_elems_per_block)
 {
     //shared input array for a block
     extern __shared__ unsigned int shared_memory[];
@@ -82,7 +82,7 @@ __global__ void gpu_radix_sort_local(unsigned int* d_out_sorted,
             mask[0] = 0;
             unsigned int total_sum = mask[mask_len - 1];
             mask_sums[i] = total_sum;
-            total_sum_block[i * gridDim.x + blockIdx.x] = total_sum;
+            d_block_sums[i * gridDim.x + blockIdx.x] = total_sum;
         }
         __syncthreads();
         if (val_equals_i && (cpy_idx < d_in_len))
@@ -114,7 +114,7 @@ __global__ void gpu_radix_sort_local(unsigned int* d_out_sorted,
         __syncthreads();
         //Write to global memory
         d_out_sorted[cpy_idx] = s_data[thIdx];
-        block_prefix_sums[cpy_idx] = s_merged_scan_mask[thIdx];
+        d_prefix_sums[cpy_idx] = s_merged_scan_mask[thIdx];
         
     }
 }
@@ -125,7 +125,7 @@ __global__ void gpu_glbl_shuffle(unsigned int* d_out,
     unsigned int* d_prefix_sums,
     unsigned int input_shift_width,
     unsigned int d_in_len,
-    unsigned int max_elems_per_block=BLOCK_SIZE)
+    unsigned int max_elems_per_block)
 {
     unsigned int thid = threadIdx.x;
     unsigned int cpy_idx = max_elems_per_block * blockIdx.x + thid;
@@ -190,7 +190,8 @@ void radix_sort(unsigned int* const d_out,
                                                                 d_block_sums, 
                                                                 shift_width, 
                                                                 d_in, 
-                                                                d_in_len);
+                                                                d_in_len, 
+                                                                max_elems_per_block);
 
 
         void     *d_temp_storage = NULL;
@@ -210,7 +211,8 @@ void radix_sort(unsigned int* const d_out,
                                                     d_scan_block_sums, 
                                                     d_prefix_sums, 
                                                     shift_width, 
-                                                    d_in_len);
+                                                    d_in_len, 
+                                                    max_elems_per_block);
         unsigned int* h_new1 = new unsigned int[d_in_len];
         cudaMemcpy(h_new1, d_out, sizeof(unsigned int) * d_in_len, cudaMemcpyDeviceToHost);
       
