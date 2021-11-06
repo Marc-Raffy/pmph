@@ -22,7 +22,7 @@ __global__ void gpu_radix_sort_local(unsigned int* d_out_sorted,
     //shared array for the sum of merged scan mask
     unsigned int* mask_sums = &s_merged_scan_mask[max_elems_per_block];
     //shared array for the scan of the mask sum
-    unsigned int* s_scan_mask_sums = &mask_sums[4];
+    unsigned int* s_scan_mask_sums = &mask_sums[16];
     unsigned int thIdx = threadIdx.x;
     //cpy_idx is the global index of the current thread
     unsigned int cpy_idx = BLOCK_SIZE * blockIdx.x + thIdx;
@@ -36,9 +36,9 @@ __global__ void gpu_radix_sort_local(unsigned int* d_out_sorted,
     //Digit from input of the current thread
     unsigned int t_data = s_data[thIdx];
     //Extracting radix of input depending on where we are in the loop
-    unsigned int radix = (t_data >> input_shift_width) & 3;
+    unsigned int radix = (t_data >> input_shift_width) & 15;
     //mask = &s_data[128];
-    for (unsigned int i = 0; i < 4; ++i)
+    for (unsigned int i = 0; i < 16; ++i)
     {
         // Zero out mask
         mask[thIdx] = 0;
@@ -101,7 +101,7 @@ __global__ void gpu_radix_sort_local(unsigned int* d_out_sorted,
     if (thIdx == 0)
     {
         unsigned int run_sum = 0;
-        for (unsigned int i = 0; i < 4; ++i)
+        for (unsigned int i = 0; i < 16; ++i)
         {
             s_scan_mask_sums[i] = run_sum;
             run_sum += mask_sums[i];
@@ -153,7 +153,7 @@ __global__ void gpu_glbl_shuffle(unsigned int* d_out,
     if (cpy_idx < d_in_len)
     {
         unsigned int t_data = d_in[cpy_idx];
-        unsigned int t_2bit_extract = (t_data >> input_shift_width) & 3;
+        unsigned int t_2bit_extract = (t_data >> input_shift_width) & 15;
         unsigned int t_prefix_sum = d_prefix_sums[cpy_idx];
         unsigned int data_glbl_pos = d_scan_block_sums[t_2bit_extract * gridDim.x + blockIdx.x]
             + t_prefix_sum;
@@ -191,7 +191,7 @@ void radix_sort(unsigned int* const d_out,
     unsigned int s_data_len = max_elems_per_block;
     unsigned int mask_len = max_elems_per_block + 1;
     unsigned int s_merged_scan_mask_len = max_elems_per_block;
-    unsigned int mask_sums_len = 4; // 4-way split
+    unsigned int mask_sums_len = 16; // 4-way split
     unsigned int s_scan_mask_sums_len = 4;
     unsigned int shmem_sz = (s_data_len 
                             + mask_len
@@ -203,7 +203,7 @@ void radix_sort(unsigned int* const d_out,
 
     // for every 2 bits from LSB to MSB:
     //  block-wise radix sort (write blocks back to global memory)
-    for (unsigned int shift_width = 0; shift_width <= 30; shift_width += 2)
+    for (unsigned int shift_width = 0; shift_width <= 28; shift_width += 4)
     {
         gpu_radix_sort_local<<<grid_sz, BLOCK_SIZE, shmem_sz>>>(d_out, 
                                                                 d_prefix_sums, 
