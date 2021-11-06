@@ -133,8 +133,10 @@ __global__ void block_shuffle(unsigned int* d_out,
     if (cpy_idx < d_in_len)
     {
         unsigned int t_data = d_in[cpy_idx];
-        unsigned int global_radix = ((t_data >> input_shift_width) & 15) * gridDim.x + blockIdx.x;
-        unsigned int data_glbl_pos = d_scan_block_sums[global_radix]+ prefix_sums[cpy_idx];
+        unsigned int t_2bit_extract = (t_data >> input_shift_width) & 15;
+        unsigned int t_prefix_sum = prefix_sums[cpy_idx];
+        unsigned int data_glbl_pos = d_scan_block_sums[t_2bit_extract * gridDim.x + blockIdx.x]
+            + t_prefix_sum;
         __syncthreads();
         d_out[data_glbl_pos] = t_data;
     }
