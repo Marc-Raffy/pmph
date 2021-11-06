@@ -2,7 +2,7 @@
 #include <cub/cub.cuh>
 #include <iostream>
 
-__global__ void radix_sort_block(unsigned int* d_out_sorted,
+__global__ void gpu_radix_sort_local(unsigned int* d_out_sorted,
     unsigned int* block_prefix_sums,
     unsigned int* total_sum_block,
     unsigned int input_shift_width,
