@@ -5,11 +5,11 @@
 __global__ void radix_sort_block(unsigned int* d_out_sorted,
     unsigned int* block_prefix_sums,
     unsigned int* total_sum_block,
-    unsigned int shift_width,
+    unsigned int input_shift_width,
     unsigned int* d_in,
-    unsigned int d_in_len)
+    unsigned int d_in_len,
+    unsigned int block_size=BLOCK_SIZE)
 {
-    unsigned int block_size=BLOCK_SIZE;
     //shared input array for a block
     extern __shared__ unsigned int shared_memory[];
     unsigned int* s_data = shared_memory;
@@ -35,7 +35,7 @@ __global__ void radix_sort_block(unsigned int* d_out_sorted,
     //Digit from input of the current thread
     unsigned int t_data = s_data[thIdx];
     //Extracting radix of input depending on where we are in the loop
-    unsigned int radix = (t_data >> shift_width) & 15;
+    unsigned int radix = (t_data >> input_shift_width) & 15;
     //mask = &s_data[128];
     for (unsigned int i = 0; i < 16; i++)
     {
@@ -123,24 +123,25 @@ __global__ void block_shuffle(unsigned int* d_out,
     unsigned int* d_in,
     unsigned int* d_scan_block_sums,
     unsigned int* prefix_sums,
-    unsigned int shift_width,
-    unsigned int d_in_len)
+    unsigned int input_shift_width,
+    unsigned int d_in_len,
+    unsigned int block_size=BLOCK_SIZE)
 {
     unsigned int thIdx = threadIdx.x;
-    unsigned int cpy_idx = BLOCK_SIZE * blockIdx.x + thIdx;
+    unsigned int cpy_idx = block_size * blockIdx.x + thIdx;
 
     if (cpy_idx < d_in_len)
     {
         unsigned int t_data = d_in[cpy_idx];
-        unsigned int global_radix = ((t_data >> shift_width) & 15) * gridDim.x + blockIdx.x;
+        unsigned int global_radix = ((t_data >> input_shift_width) & 15) * gridDim.x + blockIdx.x;
         unsigned int data_glbl_pos = d_scan_block_sums[global_radix]+ prefix_sums[cpy_idx];
         __syncthreads();
         d_out[data_glbl_pos] = t_data;
     }
 }
 
-void radix_sort(unsigned int* d_out,
-    unsigned int* d_in,
+void radix_sort(unsigned int* const d_out,
+    unsigned int* const d_in,
     unsigned int d_in_len)
 {
     unsigned int grid_size = d_in_len / BLOCK_SIZE;
@@ -159,12 +160,26 @@ void radix_sort(unsigned int* d_out,
     cudaMalloc(&d_scan_block_sums, sizeof(unsigned int) * block_sums_len);
     cudaMemset(d_scan_block_sums, 0, sizeof(unsigned int) * block_sums_len);
 
-    unsigned int shared_mem_len = (3*BLOCK_SIZE+1 + 16*2) * sizeof(unsigned int);
+    // shared memory consists of 3 arrays the size of the block-wise input
+    //  and 2 arrays the size of n in the current n-way split (4)
+    unsigned int s_data_len = BLOCK_SIZE;
+    unsigned int mask_len = BLOCK_SIZE + 1;
+    unsigned int s_merged_scan_mask_len = BLOCK_SIZE;
+    unsigned int mask_sums_len = 16; // 4-way split
+    unsigned int histogram_len = 16;
+    unsigned int shmem_sz = (s_data_len 
+                            + mask_len
+                            + s_merged_scan_mask_len
+                            + mask_sums_len
+                            + histogram_len)
+                            * sizeof(unsigned int);
+
+
     // for every 2 bits from LSB to MSB:
     //  block-wise radix sort (write blocks back to global memory)
     for (unsigned int shift_width = 0; shift_width <= 28; shift_width += 4)
     {
-        radix_sort_block<<<grid_size, BLOCK_SIZE, shared_mem_len>>>(d_out, 
+        radix_sort_block<<<grid_size, BLOCK_SIZE, shmem_sz>>>(d_out, 
                                                                 prefix_sums, 
                                                                 block_sums, 
                                                                 shift_width, 
