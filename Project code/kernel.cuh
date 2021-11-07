@@ -172,19 +172,14 @@ void radix_sort(unsigned int* const d_out,
 
     // shared memory consists of 3 arrays the size of the block-wise input
     //  and 2 arrays the size of n in the current n-way split (16)
-    unsigned int s_data_len = BLOCK_SIZE;
-    unsigned int mask_len = BLOCK_SIZE + 1;
-    unsigned int merged_scan_mask_len = BLOCK_SIZE;
-    unsigned int mask_sums_len = 16; // 16-way split
-    unsigned int histogram_len = 16;
-    unsigned int shmem_sz = (BLOCK_SIZE*3 +1 + 16*2) * sizeof(unsigned int);
+    unsigned int shared_mem_size = (BLOCK_SIZE*3 +1 + 16*2) * sizeof(unsigned int);
 
 
     // for every 4 bits from LSB to MSB:
     //  block-wise radix sort (write blocks back to global memory)
     for (unsigned int shift_width = 0; shift_width <= 30; shift_width += 4)
     {
-        block_radix_sort<<<grid_size, BLOCK_SIZE, shmem_sz>>>(d_out, 
+        block_radix_sort<<<grid_size, BLOCK_SIZE, shared_mem_size>>>(d_out, 
                                                                 prefix_sums, 
                                                                 d_block_sums, 
                                                                 shift_width, 
@@ -211,7 +206,6 @@ void radix_sort(unsigned int* const d_out,
                                                     shift_width, 
                                                     d_in_len);
         unsigned int* h_new1 = new unsigned int[d_in_len];
-        cudaMemcpy(h_new1, d_out, sizeof(unsigned int) * d_in_len, cudaMemcpyDeviceToHost);
       
     }
     cudaMemcpy(d_out, d_in, sizeof(unsigned int) * d_in_len, cudaMemcpyDeviceToDevice);
