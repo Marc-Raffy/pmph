@@ -16,7 +16,7 @@ void cpu_sort(unsigned int* h_out, unsigned int* h_in, size_t len)
 int main()
 {
     std::clock_t start;
-        unsigned int num_elems = (1 << 29);
+        unsigned int num_elems = (1 << 16);
         unsigned int* h_in = new unsigned int[num_elems];
         unsigned int* h_in_rand = new unsigned int[num_elems];
         unsigned int* h_out_gpu = new unsigned int[num_elems];
@@ -27,10 +27,10 @@ int main()
             h_in_rand[j] = rand() % num_elems;
         }
 
-        /*start = std::clock();
+        start = std::clock();
         cpu_sort(h_out_cpu, h_in_rand, num_elems);  
         double cpu_duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
-        std::cout << "CPU time: " << cpu_duration << " s" << std::endl;*/
+        std::cout << "CPU time: " << cpu_duration << " s" << std::endl;
 
         
 
@@ -63,7 +63,7 @@ int main()
         cudaMemcpy(h_out_gpu, d_out, sizeof(unsigned int) * num_elems, cudaMemcpyDeviceToHost);
         for (int i = 0; i < num_elems; ++i)
         {
-            std::cout << h_out_gpu[i] << std::endl;
+            std::cout << h_out_gpu[i] << "--" << h_out_cpu[i] << std::endl;
             if (h_out_cpu[i] != h_out_gpu[i])
             {
                 match = false;
