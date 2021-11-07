@@ -17,7 +17,7 @@ void cpu_sort(unsigned int* h_out, unsigned int* h_in, size_t len)
 
 int main()
 {
-    for (int shif_elems = 16; shif_elems < 29; shif_elems++)
+    for (int shif_elems = 28; shif_elems < 29; shif_elems++)
     {
         unsigned int num_elems = (1 << shif_elems);
         unsigned int* h_in = new unsigned int[num_elems];
@@ -54,6 +54,7 @@ int main()
         cudaMemcpy(h_out_gpu, d_out, sizeof(unsigned int) * num_elems, cudaMemcpyDeviceToHost);
         for (int i = 0; i < num_elems; ++i)
         {
+            std::cout << h_out_gpu << std::endl;
             if (h_out_cpu[i] != h_out_gpu[i])
             {
                 match = false;
