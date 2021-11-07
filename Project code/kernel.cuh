@@ -226,7 +226,7 @@ void radix_sort(unsigned int* const d_out,
         cudaMemcpy(h_new, d_scan_block_sums, sizeof(unsigned int) * d_block_sums_len, cudaMemcpyDeviceToHost);
        
         // scatter/shuffle block-wise sorted array to final positions
-        gpu_glbl_shuffle<<<grid_sz, block_sz>>>(d_in, 
+        gpu_glbl_shuffle<<<grid_sz, BLOCK_SIZE>>>(d_in, 
                                                     d_out, 
                                                     d_scan_block_sums, 
                                                     d_prefix_sums, 
