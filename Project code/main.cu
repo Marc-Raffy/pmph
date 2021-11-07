@@ -16,9 +16,7 @@ void cpu_sort(unsigned int* h_out, unsigned int* h_in, size_t len)
 int main()
 {
     std::clock_t start;
-    for(int shift = 16; shift <31; shift++){
-    
-        unsigned int num_elems = (1 << shift);
+        unsigned int num_elems = (1 << 29);
         unsigned int* h_in = new unsigned int[num_elems];
         unsigned int* h_in_rand = new unsigned int[num_elems];
         unsigned int* h_out_gpu = new unsigned int[num_elems];
@@ -75,5 +73,4 @@ int main()
         cudaMemcpy(h_out_gpu, d_out, sizeof(unsigned int) * num_elems, cudaMemcpyDeviceToHost);
         cudaFree(d_out);
         cudaFree(d_in);
-    }
 }
