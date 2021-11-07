@@ -51,13 +51,14 @@ int main()
     
     cudaMemcpy(h_out_gpu, d_out, sizeof(unsigned int) * num_elems, cudaMemcpyDeviceToHost);
 
-    auto start_cub = std::chrono::high_resolution_clock::now();
+    
     void     *d_temp_storage = NULL;
     size_t   temp_storage_bytes = 0;
     cub::DeviceRadixSort::SortKeys(d_temp_storage, temp_storage_bytes, d_in, d_out_cub, num_elems);
     // Allocate temporary storage
     cudaMalloc(&d_temp_storage, temp_storage_bytes);
     // Run sorting operation
+    auto start_cub = std::chrono::high_resolution_clock::now();
     cub::DeviceRadixSort::SortKeys(d_temp_storage, temp_storage_bytes, d_in, d_out_cub, num_elems);
     auto elapsed_cub = std::chrono::high_resolution_clock::now() - start;
     long long microseconds_cub = std::chrono::duration_cast<std::chrono::microseconds>(elapsed_cub).count();
