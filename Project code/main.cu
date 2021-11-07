@@ -17,7 +17,7 @@ void cpu_sort(unsigned int* h_out, unsigned int* h_in, size_t len)
 
 int main()
 {
-    for (int shif_elems = 18; shif_elems < 19; shif_elems++)
+    for (int shif_elems = 7; shif_elems < 8; shif_elems++)
     {
         unsigned int num_elems = (1 << shif_elems);
         unsigned int* h_in = new unsigned int[num_elems];
