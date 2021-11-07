@@ -17,7 +17,7 @@ void cpu_sort(unsigned int* h_out, unsigned int* h_in, size_t len)
 int main()
 {
     
-    unsigned int num_elems = (1 << 26);
+    unsigned int num_elems = (1 << 29);
     unsigned int* h_in = new unsigned int[num_elems];
     unsigned int* h_in_rand = new unsigned int[num_elems];
     unsigned int* h_out_gpu = new unsigned int[num_elems];
