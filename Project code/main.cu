@@ -56,7 +56,6 @@ int main()
                 match = false;
             }
         }
-        std::cout << "Match: " << match << std::endl;
         
         start = std::clock();
         void     *d_temp_storage = NULL;
@@ -69,7 +68,7 @@ int main()
         double cub_duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
         
         std::cout << "CUB time: " << cub_duration << " s" << std::endl;
-
+        std::cout << "Match: " << match << std::endl;
         cudaMemcpy(h_out_gpu, d_out, sizeof(unsigned int) * num_elems, cudaMemcpyDeviceToHost);
         cudaFree(d_out);
         cudaFree(d_in);
