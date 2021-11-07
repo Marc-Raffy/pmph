@@ -17,7 +17,7 @@ int main()
 {
     std::clock_t start;
     unsigned int elems_size = (1 << 28);
-    unsigned int num_elems = (1 << 64);
+    unsigned int num_elems = (1 << 32);
     unsigned int* h_in = new unsigned int[num_elems];
     unsigned int* h_in_rand = new unsigned int[num_elems];
     unsigned int* h_out_gpu = new unsigned int[num_elems];
@@ -53,7 +53,7 @@ int main()
             match = false;
         }
     }*/
-    std::cout << "Match: " << match << std::endl;
+    //std::cout << "Match: " << match << std::endl;
     /*for (int i = 0; i < num_elems; i++)
     {
         std::cout <<  h_out_gpu[i] << std::endl;
