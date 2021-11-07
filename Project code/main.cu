@@ -16,23 +16,21 @@ void cpu_sort(unsigned int* h_out, unsigned int* h_in, size_t len)
 
 int main()
 {
-    std::clock_t start;
     
     unsigned int num_elems = (1 << 16);
     unsigned int* h_in = new unsigned int[num_elems];
     unsigned int* h_in_rand = new unsigned int[num_elems];
     unsigned int* h_out_gpu = new unsigned int[num_elems];
     unsigned int* h_out_cpu = new unsigned int[num_elems];
-    for (int j = 0; j < num_elems; j++)
+    /*for (int j = 0; j < num_elems; j++)
     {
         h_in[j] = (num_elems - 1) - j;
         h_in_rand[j] = rand() % num_elems;
     }
 
-    start = std::clock();
     cpu_sort(h_out_cpu, h_in_rand, num_elems);  
     double cpu_duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
-    std::cout << "CPU time: " << cpu_duration << " s" << std::endl;
+    std::cout << "CPU time: " << cpu_duration << " s" << std::endl;*/
 
     
 
@@ -46,18 +44,16 @@ int main()
     radix_sort(d_out, d_in, num_elems);
     auto elapsed = std::chrono::high_resolution_clock::now() - start;
     std::cout <<  elapsed << std::endl;
-    double gpu_duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
     
-    std::cout << "GPU time: " << gpu_duration << " s" << std::endl;
     bool match = true;
     cudaMemcpy(h_out_gpu, d_out, sizeof(unsigned int) * num_elems, cudaMemcpyDeviceToHost);
-    for (int i = 0; i < num_elems; ++i)
+    /*for (int i = 0; i < num_elems; ++i)
     {
         if (h_out_cpu[i] != h_out_gpu[i])
         {
             match = false;
         }
-    }
+    }*/
     std::cout << "Match: " << match << std::endl;
     /*for (int i = 0; i < num_elems; i++)
     {
