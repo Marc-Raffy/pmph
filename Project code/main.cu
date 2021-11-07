@@ -43,7 +43,8 @@ int main()
     auto start = std::chrono::high_resolution_clock::now();
     radix_sort(d_out, d_in, num_elems);
     auto elapsed = std::chrono::high_resolution_clock::now() - start;
-    std::cout <<  elapsed << std::endl;
+    long long microseconds = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
+    std::cout <<  microseconds << std::endl;
     
     bool match = true;
     cudaMemcpy(h_out_gpu, d_out, sizeof(unsigned int) * num_elems, cudaMemcpyDeviceToHost);
