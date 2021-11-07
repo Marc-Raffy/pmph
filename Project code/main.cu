@@ -29,10 +29,10 @@ int main()
             h_in_rand[j] = rand() % num_elems;
         }
 
-        start = std::clock();
+        /*start = std::clock();
         cpu_sort(h_out_cpu, h_in_rand, num_elems);  
         double cpu_duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
-        std::cout << "CPU time: " << cpu_duration << " s" << std::endl;
+        std::cout << "CPU time: " << cpu_duration << " s" << std::endl;*/
 
         
 
@@ -63,13 +63,13 @@ int main()
 
         bool match = true;
         cudaMemcpy(h_out_gpu, d_out, sizeof(unsigned int) * num_elems, cudaMemcpyDeviceToHost);
-        for (int i = 0; i < num_elems; ++i)
+        /*for (int i = 0; i < num_elems; ++i)
         {
             if (h_out_cpu[i] != h_out_gpu[i])
             {
                 match = false;
             }
-        }
+        }*/
 
         std::cout << "Match: " << match << std::endl;
         cudaMemcpy(h_out_gpu, d_out, sizeof(unsigned int) * num_elems, cudaMemcpyDeviceToHost);
