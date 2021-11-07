@@ -3,6 +3,7 @@
 #include <iomanip>
 #include <ctime>
 #include "kernel.cuh"
+#include<chrono>
 
 void cpu_sort(unsigned int* h_out, unsigned int* h_in, size_t len)
 {
@@ -41,8 +42,10 @@ int main()
     cudaMalloc(&d_out, sizeof(unsigned int) * num_elems);
     cudaMemcpy(d_in, h_in_rand, sizeof(unsigned int) * num_elems, cudaMemcpyHostToDevice);
 
-    start = std::clock();
+    auto start = std::chrono::high_resolution_clock::now();
     radix_sort(d_out, d_in, num_elems);
+    auto elapsed = std::chrono::high_resolution_clock::now() - start;
+    std::cout <<  elapsed << std::endl;
     double gpu_duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
     
     std::cout << "GPU time: " << gpu_duration << " s" << std::endl;
@@ -56,10 +59,10 @@ int main()
         }
     }
     std::cout << "Match: " << match << std::endl;
-    for (int i = 0; i < num_elems; i++)
+    /*for (int i = 0; i < num_elems; i++)
     {
         std::cout <<  h_out_gpu[i] << std::endl;
-    }
+    }*/
     
 
     cudaMemcpy(h_out_gpu, d_out, sizeof(unsigned int) * num_elems, cudaMemcpyDeviceToHost);
