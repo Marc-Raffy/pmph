@@ -4,7 +4,7 @@
 //NVIDIA prefix sum scan
 
 __global__ void block_radix_sort(unsigned int* d_out_sorted,
-    unsigned int* prefix_sums,
+    unsigned int* prefixes,
     unsigned int* d_block_sums,
     unsigned int shift_width,
     unsigned int* d_in,
@@ -122,7 +122,7 @@ __global__ void block_radix_sort(unsigned int* d_out_sorted,
 
         // Copy block - wise prefix sum results to global memory
         // Copy block-wise sort results to global 
-        prefix_sums[cpy_idx] = merged_scan_mask[thIdx];
+        prefixes[cpy_idx] = merged_scan_mask[thIdx];
         d_out_sorted[cpy_idx] = s_data[thIdx];
     }
 }
@@ -130,7 +130,7 @@ __global__ void block_radix_sort(unsigned int* d_out_sorted,
 __global__ void block_shuffle(unsigned int* d_out,
     unsigned int* d_in,
     unsigned int* scan_block_sums,
-    unsigned int* prefix_sums,
+    unsigned int* prefixes,
     unsigned int shift_width,
     unsigned int d_in_len)
 {
@@ -141,7 +141,7 @@ __global__ void block_shuffle(unsigned int* d_out,
     {
         unsigned int t_data = d_in[cpy_idx];
         unsigned int global_radix = ((t_data >> shift_width) & 15) * gridDim.x + blockIdx.x;
-        unsigned int data_glbl_pos = scan_block_sums[global_radix]+ prefix_sums[cpy_idx];
+        unsigned int data_glbl_pos = scan_block_sums[global_radix]+ prefixes[cpy_idx];
         __syncthreads();
         d_out[data_glbl_pos] = t_data;
     }
@@ -156,10 +156,10 @@ void radix_sort(unsigned int* const d_out,
     if (d_in_len % BLOCK_SIZE != 0)
         grid_size += 1;
 
-    unsigned int* prefix_sums;
-    unsigned int prefix_sums_len = d_in_len;
-    cudaMalloc(&prefix_sums, sizeof(unsigned int) * prefix_sums_len);
-    cudaMemset(prefix_sums, 0, sizeof(unsigned int) * prefix_sums_len);
+    unsigned int* prefixes;
+    unsigned int prefixes_len = d_in_len;
+    cudaMalloc(&prefixes, sizeof(unsigned int) * prefixes_len);
+    cudaMemset(prefixes, 0, sizeof(unsigned int) * prefixes_len);
 
     unsigned int* d_block_sums;
     unsigned int d_block_sums_len = 16 * grid_size; // 16-way split
@@ -181,7 +181,7 @@ void radix_sort(unsigned int* const d_out,
     for (unsigned int shift_width = 0; shift_width <= 30; shift_width += 4)
     {
         block_radix_sort<<<grid_size, BLOCK_SIZE, shmem_sz>>>(d_out, 
-                                                                prefix_sums, 
+                                                                prefixes, 
                                                                 d_block_sums, 
                                                                 shift_width, 
                                                                 d_in, 
@@ -195,15 +195,12 @@ void radix_sort(unsigned int* const d_out,
         cub::DeviceScan::ExclusiveSum(d_temp_storage, temp_storage_bytes, d_block_sums, scan_block_sums, d_block_sums_len);
 
         // scan global block sum array
-        //prefixsumScan(scan_block_sums, d_block_sums, d_block_sums_len);
-        unsigned int* h_new = new unsigned int[d_block_sums_len];
-        cudaMemcpy(h_new, scan_block_sums, sizeof(unsigned int) * d_block_sums_len, cudaMemcpyDeviceToHost);
        
         // scatter/shuffle block-wise sorted array to final positions
         block_shuffle<<<grid_size, BLOCK_SIZE>>>(d_in, 
                                                     d_out, 
                                                     scan_block_sums, 
-                                                    prefix_sums, 
+                                                    prefixes, 
                                                     shift_width, 
                                                     d_in_len);
         unsigned int* h_new1 = new unsigned int[d_in_len];
@@ -214,5 +211,5 @@ void radix_sort(unsigned int* const d_out,
 
     cudaFree(scan_block_sums);
     cudaFree(d_block_sums);
-    cudaFree(prefix_sums);
+    cudaFree(prefixes);
 }

@@ -1,0 +1,15 @@
+BLOCK 1
+for radix between 0 - 16:
+    create mask corresponding to radix
+    exclusive scan on the mask of this radix
+    get the sum of occurencies of the current radix
+exclusive scan on the mask of all radix
+createte histogram with the sum of occurencies of radixes
+compute new indices (not final) based on the values of the mask scan + histogram
+
+on global level:
+    scan-block-sum = exclusive scan on block_su array from BLOCK 1(arrays corresponding to frequency of each radix in each block)
+
+BLOCK 2
+ Shuffle input data based on the following index:
+ prefix-sum[id] (scan on the scan of mask) + scan-block-sum[id]
