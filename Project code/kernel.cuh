@@ -172,11 +172,6 @@ void radix_sort(unsigned int* const d_out,
 
     // shared memory consists of 3 arrays the size of the block-wise input
     //  and 2 arrays the size of n in the current n-way split (16)
-    unsigned int s_data_len = BLOCK_SIZE;
-    unsigned int mask_len = BLOCK_SIZE + 1;
-    unsigned int merged_scan_mask_len = BLOCK_SIZE;
-    unsigned int mask_sums_len = 16; // 16-way split
-    unsigned int histogram_len = 16;
     unsigned int shmem_sz = (BLOCK_SIZE*3 + 1 + 32)
                             * sizeof(unsigned int);
 
