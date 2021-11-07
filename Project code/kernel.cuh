@@ -22,7 +22,7 @@ __global__ void block_radix_sort(unsigned int* d_out_sorted,
     //shared array for the sum of merged scan mask
     unsigned int* mask_sums = &merged_scan_mask[BLOCK_SIZE];
     //shared array for the scan of the mask sum
-    unsigned int* s_scan_mask_sums = &mask_sums[16];
+    unsigned int* histogram = &mask_sums[16];
     unsigned int thIdx = threadIdx.x;
     //cpy_idx is the global index of the current thread
     unsigned int cpy_idx = BLOCK_SIZE * blockIdx.x + thIdx;
@@ -37,7 +37,6 @@ __global__ void block_radix_sort(unsigned int* d_out_sorted,
     unsigned int t_data = s_data[thIdx];
     //Extracting radix of input depending on where we are in the loop
     unsigned int radix = (t_data >> shift_width) & 15;
-    //mask = &s_data[128];
     for (unsigned int i = 0; i < 16; ++i)
     {
         // Zero out mask
@@ -73,7 +72,6 @@ __global__ void block_radix_sort(unsigned int* d_out_sorted,
             mask[thIdx] = sum;
             __syncthreads();
         }
-        //Turn inclusive to exclusive scan
         unsigned int cpy_val;
         cpy_val = mask[thIdx];
         __syncthreads();
@@ -84,9 +82,8 @@ __global__ void block_radix_sort(unsigned int* d_out_sorted,
         {
             // Transform exclusive scan to inclusive scan
             mask[0] = 0;
-            unsigned int total_sum = mask[mask_len - 1];
-            mask_sums[i] = total_sum;
-            d_block_sums[i * gridDim.x + blockIdx.x] = total_sum;
+            mask_sums[i] = mask[mask_len - 1];
+            d_block_sums[i * gridDim.x + blockIdx.x] = mask[mask_len - 1];
         }
         __syncthreads();
         if (val_equals_i && (cpy_idx < d_in_len))
@@ -99,10 +96,11 @@ __global__ void block_radix_sort(unsigned int* d_out_sorted,
     // Scan on the mask output
     if (thIdx == 0)
     {
+        //Turn inclusive to exclusive scan
         unsigned int mask_sum = 0;
-        for (unsigned int i = 0; i < 16; ++i)
+        for (unsigned int i = 0; i < 16; i++)
         {
-            s_scan_mask_sums[i] = mask_sum;
+            histogram[i] = mask_sum;
             mask_sum += mask_sums[i];
         }
     }
@@ -111,15 +109,12 @@ __global__ void block_radix_sort(unsigned int* d_out_sorted,
 
     if (cpy_idx < d_in_len)
     {
-        // Calculate the new indices of the input elements for sorting
+        //Get new indices
         unsigned int t_prefix_sum = merged_scan_mask[thIdx];
-        unsigned int new_pos = t_prefix_sum + s_scan_mask_sums[radix];
+        unsigned int new_pos = t_prefix_sum + histogram[radix];
         
         __syncthreads();
-
-        // Shuffle the block's input elements to actually sort them
-        // Do this step for greater global memory transfer coalescing
-        //  in next step
+        //Sort data in shared array for both input data and mask (merged and scanned version)
         s_data[new_pos] = t_data;
         merged_scan_mask[new_pos] = t_prefix_sum;
         
@@ -139,14 +134,8 @@ __global__ void block_shuffle(unsigned int* d_out,
     unsigned int shift_width,
     unsigned int d_in_len)
 {
-    // get d = digit
-    // get n = blockIdx
-    // get m = local prefix sum array value
-    // calculate global position = P_d[n] + m
-    // copy input element to final position in d_out
-
-    unsigned int thid = threadIdx.x;
-    unsigned int cpy_idx = BLOCK_SIZE * blockIdx.x + thid;
+    unsigned int thIdx = threadIdx.x;
+    unsigned int cpy_idx = BLOCK_SIZE * blockIdx.x + thIdx;
 
     if (cpy_idx < d_in_len)
     {
@@ -162,10 +151,10 @@ void radix_sort(unsigned int* const d_out,
     unsigned int* const d_in,
     unsigned int d_in_len)
 {
-    unsigned int grid_sz = d_in_len / BLOCK_SIZE;
+    unsigned int grid_size = d_in_len / BLOCK_SIZE;
     // Take advantage of the fact that integer division drops the decimals
     if (d_in_len % BLOCK_SIZE != 0)
-        grid_sz += 1;
+        grid_size += 1;
 
     unsigned int* prefix_sums;
     unsigned int prefix_sums_len = d_in_len;
@@ -173,7 +162,7 @@ void radix_sort(unsigned int* const d_out,
     cudaMemset(prefix_sums, 0, sizeof(unsigned int) * prefix_sums_len);
 
     unsigned int* d_block_sums;
-    unsigned int d_block_sums_len = 16 * grid_sz; // 16-way split
+    unsigned int d_block_sums_len = 16 * grid_size; // 16-way split
     cudaMalloc(&d_block_sums, sizeof(unsigned int) * d_block_sums_len);
     cudaMemset(d_block_sums, 0, sizeof(unsigned int) * d_block_sums_len);
 
@@ -187,20 +176,15 @@ void radix_sort(unsigned int* const d_out,
     unsigned int mask_len = BLOCK_SIZE + 1;
     unsigned int merged_scan_mask_len = BLOCK_SIZE;
     unsigned int mask_sums_len = 16; // 16-way split
-    unsigned int s_scan_mask_sums_len = 16;
-    unsigned int shmem_sz = (s_data_len 
-                            + mask_len
-                            + merged_scan_mask_len
-                            + mask_sums_len
-                            + s_scan_mask_sums_len)
-                            * sizeof(unsigned int);
+    unsigned int histogram_len = 16;
+    unsigned int shmem_sz = (BLOCK_SIZE*3 +1 + 16*2) * sizeof(unsigned int);
 
 
     // for every 4 bits from LSB to MSB:
     //  block-wise radix sort (write blocks back to global memory)
     for (unsigned int shift_width = 0; shift_width <= 30; shift_width += 4)
     {
-        block_radix_sort<<<grid_sz, BLOCK_SIZE, shmem_sz>>>(d_out, 
+        block_radix_sort<<<grid_size, BLOCK_SIZE, shmem_sz>>>(d_out, 
                                                                 prefix_sums, 
                                                                 d_block_sums, 
                                                                 shift_width, 
@@ -220,7 +204,7 @@ void radix_sort(unsigned int* const d_out,
         cudaMemcpy(h_new, scan_block_sums, sizeof(unsigned int) * d_block_sums_len, cudaMemcpyDeviceToHost);
        
         // scatter/shuffle block-wise sorted array to final positions
-        block_shuffle<<<grid_sz, BLOCK_SIZE>>>(d_in, 
+        block_shuffle<<<grid_size, BLOCK_SIZE>>>(d_in, 
                                                     d_out, 
                                                     scan_block_sums, 
                                                     prefix_sums, 
