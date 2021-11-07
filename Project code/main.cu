@@ -21,6 +21,7 @@ int main()
     unsigned int* h_in = new unsigned int[num_elems];
     unsigned int* h_in_rand = new unsigned int[num_elems];
     unsigned int* h_out_gpu = new unsigned int[num_elems];
+    unsigned int* h_out_cub = new unsigned int[num_elems];
     unsigned int* h_out_cpu = new unsigned int[num_elems];
     /*for (int j = 0; j < num_elems; j++)
     {
@@ -36,8 +37,10 @@ int main()
 
     unsigned int* d_in;
     unsigned int* d_out;
+    unsigned int* d_out_cub;
     cudaMalloc(&d_in, sizeof(unsigned int) * num_elems);
     cudaMalloc(&d_out, sizeof(unsigned int) * num_elems);
+    cudaMalloc(&d_out_cub, sizeof(unsigned int) * num_elems);
     cudaMemcpy(d_in, h_in_rand, sizeof(unsigned int) * num_elems, cudaMemcpyHostToDevice);
 
     auto start = std::chrono::high_resolution_clock::now();
@@ -46,15 +49,32 @@ int main()
     long long microseconds = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
     std::cout <<  microseconds << std::endl;
     
-    bool match = true;
     cudaMemcpy(h_out_gpu, d_out, sizeof(unsigned int) * num_elems, cudaMemcpyDeviceToHost);
-    /*for (int i = 0; i < num_elems; ++i)
+
+    auto start_cub = std::chrono::high_resolution_clock::now();
+    void     *d_temp_storage = NULL;
+    size_t   temp_storage_bytes = 0;
+    cub::DeviceRadixSort::SortKeys(d_temp_storage, temp_storage_bytes, d_in, d_out_cub, num_elems);
+    // Allocate temporary storage
+    cudaMalloc(&d_temp_storage, temp_storage_bytes);
+    // Run sorting operation
+    cub::DeviceRadixSort::SortKeys(d_temp_storage, temp_storage_bytes, d_in, d_out_cub, num_elems);
+    auto elapsed_cub = std::chrono::high_resolution_clock::now() - start;
+    long long microseconds_cub = std::chrono::duration_cast<std::chrono::microseconds>(elapsed_cub).count();
+    std::cout <<  microseconds_cub << std::endl;
+
+    cudaMemcpy(h_out_cub, d_out_cub, sizeof(unsigned int) * num_elems, cudaMemcpyDeviceToHost);
+
+    bool match = true;
+
+
+    for (int i = 0; i < num_elems; ++i)
     {
-        if (h_out_cpu[i] != h_out_gpu[i])
+        if (h_out_cub[i] != h_out_gpu[i])
         {
             match = false;
         }
-    }*/
+    }
     std::cout << "Match: " << match << std::endl;
     /*for (int i = 0; i < num_elems; i++)
     {
@@ -62,7 +82,7 @@ int main()
     }*/
     
 
-    cudaMemcpy(h_out_gpu, d_out, sizeof(unsigned int) * num_elems, cudaMemcpyDeviceToHost);
+    //cudaMemcpy(h_out_gpu, d_out, sizeof(unsigned int) * num_elems, cudaMemcpyDeviceToHost);
     cudaFree(d_out);
     cudaFree(d_in);
 
