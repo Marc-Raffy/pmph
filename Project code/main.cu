@@ -16,7 +16,7 @@ void cpu_sort(unsigned int* h_out, unsigned int* h_in, size_t len)
 
 int main()
 {
-    for (int shift_size = 0; shift_size < 30; shift_size++)
+    for (int shift_size = 16; shift_size < 30; shift_size++)
     {
     
         unsigned int num_elems = (1 << 29);
