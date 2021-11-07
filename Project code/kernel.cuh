@@ -205,7 +205,7 @@ void radix_sort(unsigned int* const d_out,
     //  block-wise radix sort (write blocks back to global memory)
     for (unsigned int shift_width = 0; shift_width <= 30; shift_width += 2)
     {
-        gpu_radix_sort_local<<<grid_sz, block_sz, shmem_sz>>>(d_out, 
+        gpu_radix_sort_local<<<grid_sz, BLOCK_SIZE, shmem_sz>>>(d_out, 
                                                                 d_prefix_sums, 
                                                                 d_block_sums, 
                                                                 shift_width, 
@@ -226,7 +226,7 @@ void radix_sort(unsigned int* const d_out,
         cudaMemcpy(h_new, d_scan_block_sums, sizeof(unsigned int) * d_block_sums_len, cudaMemcpyDeviceToHost);
        
         // scatter/shuffle block-wise sorted array to final positions
-        gpu_glbl_shuffle<<<grid_sz, block_sz>>>(d_in, 
+        gpu_glbl_shuffle<<<grid_sz, BLOCK_SIZE>>>(d_in, 
                                                     d_out, 
                                                     d_scan_block_sums, 
                                                     d_prefix_sums, 
