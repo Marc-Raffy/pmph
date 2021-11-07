@@ -60,7 +60,7 @@ int main()
             }
         }
 
-        std::chrono::steady_clock::time_point begin_cub = std::chrono::steady_clock::now();
+        /*std::chrono::steady_clock::time_point begin_cub = std::chrono::steady_clock::now();
         void     *d_temp_storage = NULL;
         size_t   temp_storage_bytes = 0;
         cub::DeviceRadixSort::SortKeys(d_temp_storage, temp_storage_bytes, d_in, d_out, num_elems);
@@ -70,7 +70,7 @@ int main()
         cub::DeviceRadixSort::SortKeys(d_temp_storage, temp_storage_bytes, d_in, d_out, num_elems);
         std::chrono::steady_clock::time_point end_cub = std::chrono::steady_clock::now();
         std::cout << "GPU runtime = " << std::chrono::duration_cast<std::chrono::milliseconds>(end_cub - begin_cub).count() << "[ms]" << std::endl;
-
+*/
 
         std::cout << "Match: " << match << std::endl;
         
