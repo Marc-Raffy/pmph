@@ -87,5 +87,5 @@ int main()
     //cudaMemcpy(h_out_gpu, d_out, sizeof(unsigned int) * num_elems, cudaMemcpyDeviceToHost);
     cudaFree(d_out);
     cudaFree(d_in);
-
+    cudaFree(d_out_cub);
 }
