@@ -164,7 +164,13 @@ void radix_sort(unsigned int* d_out,
     unsigned int shared_mem_len = (3*BLOCK_SIZE+1 + 16*2) * sizeof(unsigned int);
     for (unsigned int shift_width = 0; shift_width <= 28; shift_width += 4)
     {
-        radix_sort_block<<<grid_size, BLOCK_SIZE, shared_mem_len>>>(d_out,  prefix_sums, block_sums, shift_width, d_in, d_in_len);
+        gpu_radix_sort_local<<<grid_sz, BLOCK_SIZE, shmem_sz>>>(d_out, 
+                                                                d_prefix_sums, 
+                                                                d_block_sums, 
+                                                                shift_width, 
+                                                                d_in, 
+                                                                d_in_len, 
+                                                                max_elems_per_block);
 
         //Perform a global exclusive scan on block sum                                 
         void     *d_temp_storage = NULL;
@@ -174,7 +180,15 @@ void radix_sort(unsigned int* d_out,
         cub::DeviceScan::ExclusiveSum(d_temp_storage, temp_storage_bytes, block_sums, scan_block_sums, block_sums_len);
        
         // scatter/shuffle block-wise sorted array to final positions
-        block_shuffle<<<grid_size, BLOCK_SIZE>>>(d_in, d_out, scan_block_sums, prefix_sums, shift_width, d_in_len);
+        gpu_glbl_shuffle<<<grid_sz, BLOCK_SIZE>>>(d_in, 
+                                                    d_out, 
+                                                    d_scan_block_sums, 
+                                                    d_prefix_sums, 
+                                                    shift_width, 
+                                                    d_in_len, 
+                                                    max_elems_per_block);
+        unsigned int* h_new1 = new unsigned int[d_in_len];
+        cudaMemcpy(h_new1, d_out, sizeof(unsigned int) * d_in_len, cudaMemcpyDeviceToHost);
     }
     cudaMemcpy(d_out, d_in, sizeof(unsigned int) * d_in_len, cudaMemcpyDeviceToDevice);
 }
