@@ -74,6 +74,7 @@ int main()
         if (h_out_cub[i] != h_out_gpu[i])
         {
             match = false;
+            std::cout <<  h_out_gpu[i] << -- << h_out_cub[i] << std::endl;
         }
     }
     std::cout << "Match: " << match << std::endl;
