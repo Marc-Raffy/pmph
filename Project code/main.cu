@@ -3,6 +3,7 @@
 #include <iomanip>
 #include <ctime>
 #include "kernel.cuh"
+#include <stdint.h>
 
 void cpu_sort(unsigned int* h_out, unsigned int* h_in, size_t len)
 {
@@ -17,7 +18,7 @@ int main()
 {
     std::clock_t start;
     unsigned int elems_size = (1 << 28);
-    int num_elems = (1 << 40);
+    uint64_t num_elems = (1 << 40);
     unsigned int* h_in = new unsigned int[num_elems];
     unsigned int* h_in_rand = new unsigned int[num_elems];
     unsigned int* h_out_gpu = new unsigned int[num_elems];
