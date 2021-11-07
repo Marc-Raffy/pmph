@@ -93,8 +93,5 @@ int main()
     free(h_out_gpu);
     free(h_out_cub);
     free(h_out_cpu);
-    free(d_in);
-    free(d_out);
-    free(d_out_cub);
-    free(d_temp_storage);
+    cudaFree(d_temp_storage);
 }
