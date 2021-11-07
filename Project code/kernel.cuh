@@ -152,7 +152,7 @@ __global__ void block_shuffle(unsigned int* d_out,
     {
         unsigned int t_data = d_in[cpy_idx];
         unsigned int global_radix = ((t_data >> shift_width) & 15) * gridDim.x + blockIdx.x;
-        unsigned int data_glbl_pos = scan_block_sums[global_radix]+ prefix_sums[cpy_idx];    + t_prefix_sum;
+        unsigned int data_glbl_pos = scan_block_sums[global_radix]+ prefix_sums[cpy_idx];
         __syncthreads();
         d_out[data_glbl_pos] = t_data;
     }
@@ -162,7 +162,6 @@ void radix_sort(unsigned int* const d_out,
     unsigned int* const d_in,
     unsigned int d_in_len)
 {
-    unsigned int BLOCK_SIZE = BLOCK_SIZE;
     unsigned int grid_sz = d_in_len / BLOCK_SIZE;
     // Take advantage of the fact that integer division drops the decimals
     if (d_in_len % BLOCK_SIZE != 0)
