@@ -63,11 +63,11 @@ int main()
         start = std::clock();
         void     *d_temp_storage = NULL;
         size_t   temp_storage_bytes = 0;
-        cub::DeviceRadixSort::SortKeys(d_temp_storage, temp_storage_bytes, d_in, num_elems);
+        cub::DeviceRadixSort::SortKeys(d_temp_storage, temp_storage_bytes, d_in, d_out, num_elems);
         // Allocate temporary storage
         cudaMalloc(&d_temp_storage, temp_storage_bytes);
         // Run sorting operation
-        cub::DeviceRadixSort::SortKeys(d_temp_storage, temp_storage_bytes, d_in, num_elems);
+        cub::DeviceRadixSort::SortKeys(d_temp_storage, temp_storage_bytes, d_in, d_out, num_elems);
         double cub_duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
         std::cout << "CUB time: " << cub_duration << " s" << std::endl;
 
