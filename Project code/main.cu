@@ -23,13 +23,13 @@ int main()
     unsigned int* h_out_gpu = new unsigned int[num_elems];
     unsigned int* h_out_cub = new unsigned int[num_elems];
     unsigned int* h_out_cpu = new unsigned int[num_elems];
-    /*for (int j = 0; j < num_elems; j++)
+    for (int j = 0; j < num_elems; j++)
     {
         h_in[j] = (num_elems - 1) - j;
         h_in_rand[j] = rand() % num_elems;
     }
 
-    cpu_sort(h_out_cpu, h_in_rand, num_elems);  
+    /*cpu_sort(h_out_cpu, h_in_rand, num_elems);  
     double cpu_duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
     std::cout << "CPU time: " << cpu_duration << " s" << std::endl;*/
 
