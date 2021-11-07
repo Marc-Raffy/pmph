@@ -177,11 +177,7 @@ void radix_sort(unsigned int* const d_out,
     unsigned int merged_scan_mask_len = BLOCK_SIZE;
     unsigned int mask_sums_len = 16; // 16-way split
     unsigned int histogram_len = 16;
-    unsigned int shmem_sz = (s_data_len 
-                            + mask_len
-                            + merged_scan_mask_len
-                            + mask_sums_len
-                            + histogram_len)
+    unsigned int shmem_sz = (BLOCK_SIZE*3 + 1 + 32)
                             * sizeof(unsigned int);
 
 
