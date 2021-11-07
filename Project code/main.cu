@@ -4,6 +4,7 @@
 #include <ctime>
 #include <cub/cub.cuh>  
 #include "kernel.cuh"
+#include <chrono>
 
 void cpu_sort(unsigned int* h_out, unsigned int* h_in, size_t len)
 {
@@ -18,9 +19,6 @@ int main()
 {
     for (int shif_elems = 16; shif_elems < 29; shif_elems++)
     {
-    
-        std::clock_t start;
-        
         unsigned int num_elems = (1 << shif_elems);
         unsigned int* h_in = new unsigned int[num_elems];
         unsigned int* h_in_rand = new unsigned int[num_elems];
@@ -32,10 +30,12 @@ int main()
             h_in_rand[j] = rand() % num_elems;
         }
 
-        start = std::clock();
+        
+
+        std::chrono::steady_clock::time_point begin_cpu = std::chrono::steady_clock::now();
         cpu_sort(h_out_cpu, h_in_rand, num_elems);  
-        double cpu_duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
-        std::cout << "CPU time: " << cpu_duration << " s" << std::endl;
+        std::chrono::steady_clock::time_point end_cpu = std::chrono::steady_clock::now();
+        std::cout << "CPU runtime = " << std::chrono::duration_cast<std::chrono::milliseconds>(end_cpu - begin_cpu).count() << "[ms]" << std::endl;
 
         
 
@@ -45,11 +45,11 @@ int main()
         cudaMalloc(&d_out, sizeof(unsigned int) * num_elems);
         cudaMemcpy(d_in, h_in_rand, sizeof(unsigned int) * num_elems, cudaMemcpyHostToDevice);
 
-        start = std::clock();
+        std::chrono::steady_clock::time_point begin_gpu = std::chrono::steady_clock::now();
         radix_sort(d_out, d_in, num_elems);
-        double gpu_duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
-        
-        std::cout << "GPU time: " << gpu_duration << " s" << std::endl;
+        std::chrono::steady_clock::time_point end_gpu = std::chrono::steady_clock::now();
+        std::cout << "GPU runtime = " << std::chrono::duration_cast<std::chrono::milliseconds>(end_gpu - begin_gpu).count() << "[ms]" << std::endl;
+
         bool match = true;
         cudaMemcpy(h_out_gpu, d_out, sizeof(unsigned int) * num_elems, cudaMemcpyDeviceToHost);
         for (int i = 0; i < num_elems; ++i)
@@ -60,7 +60,7 @@ int main()
             }
         }
 
-        start = std::clock();
+        std::chrono::steady_clock::time_point begin_cub = std::chrono::steady_clock::now();
         void     *d_temp_storage = NULL;
         size_t   temp_storage_bytes = 0;
         cub::DeviceRadixSort::SortKeys(d_temp_storage, temp_storage_bytes, d_in, d_out, num_elems);
@@ -68,8 +68,9 @@ int main()
         cudaMalloc(&d_temp_storage, temp_storage_bytes);
         // Run sorting operation
         cub::DeviceRadixSort::SortKeys(d_temp_storage, temp_storage_bytes, d_in, d_out, num_elems);
-        double cub_duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
-        std::cout << "CUB time: " << cub_duration << " s" << std::endl;
+        std::chrono::steady_clock::time_point end_cub = std::chrono::steady_clock::now();
+        std::cout << "GPU runtime = " << std::chrono::duration_cast<std::chrono::milliseconds>(end_cub - begin_cub).count() << "[ms]" << std::endl;
+
 
         std::cout << "Match: " << match << std::endl;
         
