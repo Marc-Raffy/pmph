@@ -28,7 +28,7 @@ int main()
         for (int j = 0; j < num_elems; j++)
         {
             h_in[j] = (num_elems - 1) - j;
-            h_in_rand[j] = rand() % num_elems;
+            h_in_rand[j] = h_in[j];
         }
         auto start_cpu = std::chrono::high_resolution_clock::now();
         cpu_sort(h_out_cpu, h_in_rand, num_elems);  
