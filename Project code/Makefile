@@ -8,7 +8,7 @@ default: compile run
 
 compile: $(TEST_RADIX)
 
-$(TEST_RADIX): kernel.cuh scan.cuh
+$(TEST_RADIX): kernel.cuh
 	$(COMPILER) $(STD_FLAG) -o $(TEST_RADIX) main.cu
 
 all: $(TEST_RADIX)
