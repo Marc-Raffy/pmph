@@ -34,7 +34,7 @@ int main()
         cpu_sort(h_out_cpu, h_in_rand, num_elems);  
         auto elapsed_cpu = std::chrono::high_resolution_clock::now() - start_cpu;
         long long microseconds_cpu = std::chrono::duration_cast<std::chrono::microseconds>(elapsed_cpu).count();
-        std::cout <<"CPU radix sort in µs"<<  microseconds_cpu << std::endl;
+        std::cout <<"CPU radix sort in µs: "<<  microseconds_cpu << std::endl;
         
 
         unsigned int* d_in;
@@ -49,7 +49,7 @@ int main()
         radix_sort(d_out, d_in, num_elems);
         auto elapsed = std::chrono::high_resolution_clock::now() - start;
         long long microseconds = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
-        std::cout <<"Own implementation in µs" << microseconds << std::endl;
+        std::cout <<"Own implementation in µs: " << microseconds << std::endl;
         
         cudaMemcpy(h_out_gpu, d_out, sizeof(unsigned int) * num_elems, cudaMemcpyDeviceToHost);
 
@@ -64,7 +64,7 @@ int main()
         cub::DeviceRadixSort::SortKeys(d_temp_storage, temp_storage_bytes, d_in, d_out_cub, num_elems);
         auto elapsed_cub = std::chrono::high_resolution_clock::now() - start;
         long long microseconds_cub = std::chrono::duration_cast<std::chrono::microseconds>(elapsed_cub).count();
-        std::cout <<"CUB radix sort in µs"<<  microseconds_cub << std::endl;
+        std::cout <<"CUB radix sort in µs: "<<  microseconds_cub << std::endl;
 
         cudaMemcpy(h_out_cub, d_out_cub, sizeof(unsigned int) * num_elems, cudaMemcpyDeviceToHost);
 
